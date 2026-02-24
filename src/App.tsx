@@ -57,6 +57,7 @@ export default function App() {
 
   // Doctor Dashboard States
   const [activeTab, setActiveTab] = useState<'start' | 'patients' | 'requests' | 'appointments' | 'patient-details'>('start');
+  const [activeSubTab, setActiveSubTab] = useState('Acompanhamento');
   const [searchQuery, setSearchQuery] = useState('');
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showPatientModal, setShowPatientModal] = useState(false);
@@ -935,7 +936,8 @@ export default function App() {
                       ].map((item, i) => (
                         <button
                           key={i}
-                          className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between ${item.active
+                          onClick={() => setActiveSubTab(item.label)}
+                          className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between ${activeSubTab === item.label
                             ? 'bg-[#00E676] text-white shadow-md shadow-green-500/20'
                             : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'
                             }`}
@@ -952,101 +954,235 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Right Column: Tracking Dashboard */}
+                {/* Right Column: Multi-tab Content */}
                 <div className="flex-1 space-y-6 min-w-0">
-                  <div className="bg-white dark:bg-dark-card p-8 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5">
-                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                      <div>
-                        <h5 className="text-xl font-bold text-brand-ink dark:text-dark-ink">Acompanhar paciente</h5>
-                        <button className="mt-2 bg-[#5A7A9A] text-white px-4 py-1.5 rounded-lg text-sm font-bold">
-                          Visualizar refeições
+                  {activeSubTab === 'Acompanhamento' ? (
+                    <div className="bg-white dark:bg-dark-card p-8 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                        <div>
+                          <h5 className="text-xl font-bold text-brand-ink dark:text-dark-ink">Acompanhar paciente</h5>
+                          <button className="mt-2 bg-[#5A7A9A] text-white px-4 py-1.5 rounded-lg text-sm font-bold">
+                            Visualizar refeições
+                          </button>
+                        </div>
+                        <div className="text-right">
+                          <div className="flex items-center gap-4 justify-end mb-1">
+                            <button className="p-1.5 rounded-lg bg-gray-50 dark:bg-white/5 text-gray-400"><ChevronRight className="rotate-180" size={16} /></button>
+                            <span className="text-base font-bold text-brand-ink dark:text-dark-ink">23/02/2026</span>
+                            <button className="p-1.5 rounded-lg bg-gray-50 dark:bg-white/5 text-gray-400"><ChevronRight size={16} /></button>
+                          </div>
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Intervalo: 17/02/2026 – 23/02/2026</p>
+                        </div>
+                      </div>
+
+                      {/* Daily Status Row */}
+                      <div className="grid grid-cols-7 gap-2 mb-8">
+                        {['17/02', '18/02', '19/02', '20/02', '21/02', '22/02', '23/02'].map((date, i) => (
+                          <div key={i} className="bg-gray-50 dark:bg-white/5 p-3 rounded-2xl text-center border border-transparent hover:border-gray-200 transition-all">
+                            <p className="text-xs font-bold text-brand-ink dark:text-dark-ink mb-1">{date}</p>
+                            <div className="flex items-center justify-center gap-1 text-blue-500">
+                              <Droplets size={12} />
+                              <span className="text-xs font-bold">0 ml</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Dados do paciente */}
+                        <div className="bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
+                          <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-4">Dados do paciente</h6>
+                          <div className="space-y-3">
+                            {[
+                              { label: 'Média de consumo de kcal', value: '0.0 Kcal' },
+                              { label: 'Média de consumo de proteínas', value: '0.0 g' },
+                              { label: 'Média de consumo de carboidrato', value: '0.0 g' },
+                              { label: 'Média de consumo de lipídios', value: '0.0 g' },
+                            ].map((item, i) => (
+                              <div key={i} className="flex justify-between items-center text-xs">
+                                <span className="text-gray-500">{item.label}</span>
+                                <span className="font-bold text-brand-ink dark:text-dark-ink">{item.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Registros de peso */}
+                        <div className="bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
+                          <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-4">Registros de peso</h6>
+                          <div className="h-24 flex items-end justify-center px-4">
+                            <div className="w-full h-px bg-gray-200 dark:bg-white/10 relative">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: '100%' }}
+                                className="absolute bottom-0 left-0 h-0.5 bg-brand-olive/30"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Charts Grid */}
+                        {[
+                          { label: 'Consumo calórico médio (7 dias)', color: '#00E676' },
+                          { label: 'Consumo de proteínas médio (7 dias)', color: '#FF5252' },
+                          { label: 'Consumo de lipídios médio (7 dias)', color: '#FFD740' },
+                          { label: 'Consumo de carboidratos médio (7 dias)', color: '#448AFF' },
+                        ].map((chart, i) => (
+                          <div key={i} className="bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
+                            <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-6">{chart.label}</h6>
+                            <div className="h-20 w-full relative">
+                              <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-200 dark:bg-white/10" />
+                              <div className="flex justify-between items-end h-full px-2">
+                                {[1, 2, 3, 4, 5, 6, 7].map((_, j) => (
+                                  <div key={j} className="flex flex-col items-center gap-2">
+                                    <div className="w-4 h-1 rounded-full" style={{ backgroundColor: chart.color, opacity: 0.3 }} />
+                                    <span className="text-[8px] text-gray-400">{17 + j}/02</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+
+                        {/* Registros de atividade física */}
+                        <div className="md:col-span-2 bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
+                          <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink">Registros de atividade física</h6>
+                        </div>
+                      </div>
+                    </div>
+                  ) : activeSubTab === 'Perfil do paciente' ? (
+                    <div className="bg-white dark:bg-dark-card rounded-[40px] shadow-sm border border-white/20 dark:border-white/5 overflow-hidden flex flex-col">
+                      {/* Header */}
+                      <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
+                        <h4 className="font-bold text-brand-ink dark:text-dark-ink truncate">Paciente {selectedPatient.name}, 41 anos.</h4>
+                        <button onClick={() => setActiveSubTab('Acompanhamento')} className="text-gray-400 hover:text-red-500 transition-colors">
+                          <X size={20} />
                         </button>
                       </div>
-                      <div className="text-right">
-                        <div className="flex items-center gap-4 justify-end mb-1">
-                          <button className="p-1.5 rounded-lg bg-gray-50 dark:bg-white/5 text-gray-400"><ChevronRight className="rotate-180" size={16} /></button>
-                          <span className="text-base font-bold text-brand-ink dark:text-dark-ink">23/02/2026</span>
-                          <button className="p-1.5 rounded-lg bg-gray-50 dark:bg-white/5 text-gray-400"><ChevronRight size={16} /></button>
-                        </div>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Intervalo: 17/02/2026 – 23/02/2026</p>
-                      </div>
-                    </div>
 
-                    {/* Daily Status Row */}
-                    <div className="grid grid-cols-7 gap-2 mb-8">
-                      {['17/02', '18/02', '19/02', '20/02', '21/02', '22/02', '23/02'].map((date, i) => (
-                        <div key={i} className="bg-gray-50 dark:bg-white/5 p-3 rounded-2xl text-center border border-transparent hover:border-gray-200 transition-all">
-                          <p className="text-xs font-bold text-brand-ink dark:text-dark-ink mb-1">{date}</p>
-                          <div className="flex items-center justify-center gap-1 text-blue-500">
-                            <Droplets size={12} />
-                            <span className="text-xs font-bold">0 ml</span>
+                      <div className="p-8 space-y-10">
+                        {/* Dados Básicos */}
+                        <section className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h5 className="text-lg font-bold text-brand-ink dark:text-dark-ink">Dados básicos</h5>
+                            <button className="text-sm font-bold text-brand-olive uppercase tracking-widest hover:underline">Editar</button>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Dados do paciente */}
-                      <div className="bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
-                        <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-4">Dados do paciente</h6>
-                        <div className="space-y-3">
-                          {[
-                            { label: 'Média de consumo de kcal', value: '0.0 Kcal' },
-                            { label: 'Média de consumo de proteínas', value: '0.0 g' },
-                            { label: 'Média de consumo de carboidrato', value: '0.0 g' },
-                            { label: 'Média de consumo de lipídios', value: '0.0 g' },
-                          ].map((item, i) => (
-                            <div key={i} className="flex justify-between items-center text-xs">
-                              <span className="text-gray-500">{item.label}</span>
-                              <span className="font-bold text-brand-ink dark:text-dark-ink">{item.value}</span>
+                          <div className="bg-gray-50/50 dark:bg-white/5 p-8 rounded-[32px] border border-gray-100 dark:border-white/10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
+                            <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-200 dark:bg-white/10 shrink-0">
+                              <img
+                                src={`https://images.unsplash.com/photo-${selectedPatient.id === 1 ? '1494790108377-be9c29b29330' : '1507003211169-0a1dd7228f2d'}?auto=format&fit=crop&q=80&w=300&h=300`}
+                                alt={selectedPatient.name}
+                                className="w-full h-full object-cover grayscale"
+                              />
                             </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Registros de peso */}
-                      <div className="bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
-                        <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-4">Registros de peso</h6>
-                        <div className="h-24 flex items-end justify-center px-4">
-                          <div className="w-full h-px bg-gray-200 dark:bg-white/10 relative">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: '100%' }}
-                              className="absolute bottom-0 left-0 h-0.5 bg-brand-olive/30"
-                            />
+                            <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
+                              <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Nome completo</p>
+                                <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">{selectedPatient.name}</p>
+                              </div>
+                              <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Data de nascimento</p>
+                                <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">15/11/1984</p>
+                              </div>
+                              <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Telefone com DDD</p>
+                                <p className="text-sm font-bold text-brand-ink dark:text-dark-ink flex items-center justify-center md:justify-start gap-2">
+                                  (11) 96040-1325 <MessageCircle size={14} className="text-green-500" />
+                                </p>
+                              </div>
+                              <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5 lg:col-span-2">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Link do paciente <span className="text-gray-300">?</span></p>
+                                <p className="text-sm font-bold text-brand-olive truncate flex items-center gap-2">
+                                  https://paciente.me/479994364533 <Edit2 size={12} /> <LogOut className="rotate-180" size={12} />
+                                </p>
+                              </div>
+                              <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Já logou no aplicativo?</p>
+                                <p className="text-sm font-bold text-red-500">Não</p>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </div>
+                        </section>
 
-                      {/* Charts Grid */}
-                      {[
-                        { label: 'Consumo calórico médio (7 dias)', color: '#00E676' },
-                        { label: 'Consumo de proteínas médio (7 dias)', color: '#FF5252' },
-                        { label: 'Consumo de lipídios médio (7 dias)', color: '#FFD740' },
-                        { label: 'Consumo de carboidratos médio (7 dias)', color: '#448AFF' },
-                      ].map((chart, i) => (
-                        <div key={i} className="bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
-                          <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-6">{chart.label}</h6>
-                          <div className="h-20 w-full relative">
-                            <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-200 dark:bg-white/10" />
-                            <div className="flex justify-between items-end h-full px-2">
-                              {[1, 2, 3, 4, 5, 6, 7].map((_, j) => (
-                                <div key={j} className="flex flex-col items-center gap-2">
-                                  <div className="w-4 h-1 rounded-full" style={{ backgroundColor: chart.color, opacity: 0.3 }} />
-                                  <span className="text-[8px] text-gray-400">{17 + j}/02</span>
+                        {/* Fluxo de consulta */}
+                        <section className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h5 className="text-lg font-bold text-brand-ink dark:text-dark-ink">Fluxo de consulta</h5>
+                            <button className="text-sm font-bold text-brand-olive uppercase tracking-widest hover:underline">Configurar</button>
+                          </div>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                            {[
+                              { label: 'registrar consulta', icon: <Check size={20} />, color: 'bg-[#1DE9B6]' },
+                              { label: 'agendar paciente', icon: <Calendar size={20} />, color: 'bg-[#1DE9B6]' },
+                              { label: 'adicionar anamnese', icon: <MessageCircle size={20} />, color: 'bg-[#1DE9B6]' },
+                              { label: 'adicionar antropometria', icon: <User size={20} />, color: 'bg-[#1DE9B6]' },
+                              { label: 'adicionar planejamento', icon: <Utensils size={20} />, color: 'bg-[#1DE9B6]' },
+                              { label: 'adicionar orientação', icon: <FileText size={20} />, color: 'bg-[#1DE9B6]' },
+                              { label: 'adicionar manipulados', icon: <Pill size={20} />, color: 'bg-[#1DE9B6]' },
+                            ].map((action, i) => (
+                              <button key={i} className={`${action.color} hover:brightness-95 transition-all p-4 rounded-xl flex flex-col items-center justify-center text-center gap-2 group`}>
+                                <div className="text-white drop-shadow-sm group-hover:scale-110 transition-transform">
+                                  {action.icon}
                                 </div>
-                              ))}
+                                <span className="text-[10px] font-bold text-white leading-tight uppercase tracking-tight">{action.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </section>
+
+                        {/* Ajustes do paciente */}
+                        <section className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <h5 className="text-lg font-bold text-brand-ink dark:text-dark-ink">Ajustes do paciente</h5>
+                          </div>
+                          <div className="bg-gray-50/50 dark:bg-white/5 rounded-[32px] border border-gray-100 dark:border-white/10 overflow-hidden divide-y divide-gray-100 dark:divide-white/5">
+                            {[
+                              { label: 'Habilitar acesso ao link do paciente (conteúdos do paciente.me/479994364533)', active: true },
+                              { label: 'Habilitar acesso ao aplicativo WebDiet', active: true },
+                              { label: 'Habilitar funcionalidade WebDiet+ para o paciente', active: true },
+                            ].map((setting, i) => (
+                              <div key={i} className="px-6 py-4 flex justify-between items-center">
+                                <span className="text-xs font-medium text-gray-600 dark:text-gray-300">{setting.label}</span>
+                                <div className={`w-10 h-6 rounded-full p-1 transition-colors cursor-pointer ${setting.active ? 'bg-[#1DE9B6]' : 'bg-gray-200 dark:bg-white/10'}`}>
+                                  <div className={`w-4 h-4 bg-white rounded-full transition-transform ${setting.active ? 'translate-x-4' : ''}`} />
+                                </div>
+                              </div>
+                            ))}
+                            <div className="px-6 py-4 flex justify-between items-center bg-gray-100/30 dark:bg-white/5">
+                              <span className="text-xs font-medium text-gray-600 dark:text-gray-300 italic">Demais ajustes de aplicativo WebDiet</span>
+                              <button className="text-[10px] font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Configurar</button>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        </section>
 
-                      {/* Registros de atividade física */}
-                      <div className="md:col-span-2 bg-gray-50/50 dark:bg-white/5 p-6 rounded-3xl border border-gray-100 dark:border-white/5">
-                        <h6 className="text-sm font-bold text-brand-ink dark:text-dark-ink">Registros de atividade física</h6>
+                        {/* Diário Alimentar Placeholder */}
+                        <section className="space-y-4">
+                          <h5 className="text-lg font-bold text-brand-ink dark:text-dark-ink">Diário alimentar</h5>
+                          <div className="bg-gray-50/50 dark:bg-white/5 p-8 rounded-[32px] border border-gray-100 dark:border-white/10">
+                            <p className="text-xs text-gray-500 italic">
+                              Nenhuma foto de diário alimentar foi enviada pelo seu paciente. Você pode solicitar que ele use o aplicativo para enviar as fotos e você acompanhar o andamento do plano alimentar.
+                            </p>
+                          </div>
+                        </section>
+
+                        {/* Reações Placeholder */}
+                        <section className="space-y-4">
+                          <h5 className="text-lg font-bold text-brand-ink dark:text-dark-ink flex items-center gap-2">
+                            Reações a refeições <span className="text-xs text-gray-300">?</span>
+                          </h5>
+                        </section>
                       </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="bg-white dark:bg-dark-card p-12 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5 text-center space-y-4">
+                      <div className="w-20 h-20 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-gray-300">
+                        <ClipboardList size={40} />
+                      </div>
+                      <h4 className="text-xl font-bold text-brand-ink dark:text-dark-ink">{activeSubTab}</h4>
+                      <p className="text-sm text-gray-400 max-w-xs mx-auto">Esta seção está em desenvolvimento e será integrada em breve para oferecer mais recursos ao seu consultório.</p>
+                      <button onClick={() => setActiveSubTab('Acompanhamento')} className="text-brand-olive font-bold uppercase tracking-widest text-xs hover:underline mt-4 inline-block">Voltar para Acompanhamento</button>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
