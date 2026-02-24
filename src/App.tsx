@@ -597,8 +597,8 @@ export default function App() {
                         <button
                           key={item.id}
                           className={`w-full text-left p-4 rounded-2xl border transition-all ${item.active
-                              ? 'bg-brand-olive/5 border-brand-olive/30 ring-1 ring-brand-olive/30'
-                              : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200 dark:hover:border-white/10'
+                            ? 'bg-brand-olive/5 border-brand-olive/30 ring-1 ring-brand-olive/30'
+                            : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200 dark:hover:border-white/10'
                             }`}
                         >
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{item.date}</p>
@@ -615,8 +615,8 @@ export default function App() {
                       <div className="flex justify-between items-start border-b-2 border-brand-olive/20 pb-8">
                         <div>
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-brand-olive flex items-center justify-center text-white">
-                              <Leaf size={24} />
+                            <div className="w-12 h-12 rounded-2xl bg-transparent flex items-center justify-center p-1">
+                              <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
                             </div>
                             <div>
                               <h2 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink">Dra. Aure</h2>
@@ -727,10 +727,10 @@ export default function App() {
         {/* Sidebar (Desktop) */}
         <aside className="hidden md:flex flex-col w-72 bg-white dark:bg-dark-card border-r border-gray-100 dark:border-white/5 p-6 h-screen sticky top-0">
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-[#5A5A40] flex items-center justify-center text-white">
-              <Leaf size={20} />
+            <div className="w-12 h-12 rounded-xl bg-transparent flex items-center justify-center p-1">
+              <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <h1 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Dra. Aure</h1>
+            <h1 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink hidden">Dra. Aure</h1>
           </div>
 
           <nav className="flex-1 space-y-2">
@@ -745,8 +745,8 @@ export default function App() {
                 key={item.id}
                 onClick={() => setActiveTab(item.id as any)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activeTab === item.id
-                    ? 'bg-[#5A5A40] text-white shadow-lg shadow-[#5A5A40]/20'
-                    : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'
+                  ? 'bg-[#5A5A40] text-white shadow-lg shadow-[#5A5A40]/20'
+                  : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'
                   }`}
               >
                 {item.icon}
@@ -771,8 +771,8 @@ export default function App() {
           {/* Mobile Header */}
           <header className="md:hidden flex justify-between items-center mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#5A5A40] flex items-center justify-center text-white">
-                <Leaf size={20} />
+              <div className="w-10 h-10 rounded-xl bg-transparent flex items-center justify-center p-1">
+                <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
               </div>
               <h1 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Dra. Aure</h1>
             </div>
@@ -936,8 +936,8 @@ export default function App() {
                         <button
                           key={i}
                           className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between ${item.active
-                              ? 'bg-[#00E676] text-white shadow-md shadow-green-500/20'
-                              : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'
+                            ? 'bg-[#00E676] text-white shadow-md shadow-green-500/20'
+                            : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'
                             }`}
                         >
                           <span>{item.label}</span>
@@ -1239,8 +1239,8 @@ export default function App() {
                               top: `${top}px`,
                               left: `calc(80px + (${dayIndex} * (100% - 80px) / 7))`,
                               width: `calc((100% - 80px) / 7 - 8px)`,
+                              marginLeft: '4px',
                               height: `${height}px`,
-                              marginLeft: '4px'
                             }}
                             className={`${apt.color} rounded-lg p-2 shadow-lg shadow-black/10 border border-white/20 cursor-pointer hover:brightness-110 transition-all z-10`}
                           >
@@ -1303,10 +1303,10 @@ export default function App() {
                           </td>
                           <td className="px-6 py-4">
                             <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${item.status === 'Ativo' || item.status === 'Enviado'
-                                ? 'bg-green-50 dark:bg-green-900/20 text-green-600'
-                                : item.status === 'Pendente'
-                                  ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600'
-                                  : 'bg-gray-50 dark:bg-white/10 text-gray-400'
+                              ? 'bg-green-50 dark:bg-green-900/20 text-green-600'
+                              : item.status === 'Pendente'
+                                ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600'
+                                : 'bg-gray-50 dark:bg-white/10 text-gray-400'
                               }`}>
                               {item.status}
                             </span>
@@ -1477,8 +1477,8 @@ export default function App() {
                         <button
                           key={item.id}
                           className={`w-full text-left p-4 rounded-2xl border transition-all ${item.active
-                              ? 'bg-brand-olive/5 border-brand-olive/30 ring-1 ring-brand-olive/30'
-                              : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200 dark:hover:border-white/10'
+                            ? 'bg-brand-olive/5 border-brand-olive/30 ring-1 ring-brand-olive/30'
+                            : 'bg-gray-50 dark:bg-white/5 border-transparent hover:border-gray-200 dark:hover:border-white/10'
                             }`}
                         >
                           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">{item.date}</p>
@@ -1495,8 +1495,8 @@ export default function App() {
                       <div className="flex justify-between items-start border-b-2 border-brand-olive/20 pb-8">
                         <div>
                           <div className="flex items-center gap-3 mb-4">
-                            <div className="w-12 h-12 rounded-2xl bg-brand-olive flex items-center justify-center text-white">
-                              <Leaf size={24} />
+                            <div className="w-12 h-12 rounded-2xl bg-transparent flex items-center justify-center p-1">
+                              <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
                             </div>
                             <div>
                               <h2 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink">Dra. Aure</h2>
@@ -1730,7 +1730,7 @@ export default function App() {
                 <div className="p-6 space-y-8">
                   {/* Profile Header */}
                   <div className="flex flex-col items-center text-center">
-                    <div className="relative mb-4">
+                    <div className="relative inline-block mb-4">
                       <div className="w-24 h-24 rounded-full border-4 border-white dark:border-dark-card shadow-lg overflow-hidden">
                         <img
                           src={`https://images.unsplash.com/photo-${selectedPatient.id === 1 ? '1494790108377-be9c29b29330' : '1507003211169-0a1dd7228f2d'}?auto=format&fit=crop&q=80&w=200&h=200`}
@@ -2047,7 +2047,7 @@ export default function App() {
               transition={{ delay: 0.3 }}
               className="mt-[-20px] bg-white dark:bg-dark-card px-6 py-3 rounded-2xl shadow-lg border border-white/20 dark:border-white/5 flex items-center gap-3 z-30"
             >
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500">
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
                 <Droplets size={16} />
               </div>
               <p className="text-base font-bold text-brand-ink dark:text-dark-ink">
@@ -2293,20 +2293,13 @@ export default function App() {
                   <ArrowLeft size={24} />
                 </button>
               )}
-              <div className="w-24 h-24 mb-4 relative">
+              <div className="w-32 h-32 mb-4 relative">
                 <img
-                  src="https://images.unsplash.com/photo-1490818387583-1baba5e638af?auto=format&fit=crop&q=80&w=400&h=400"
+                  src="/assets/logo.png"
                   alt="Dra. Aure Logo"
                   className="w-full h-full object-contain"
                   referrerPolicy="no-referrer"
                 />
-                <motion.div
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute -top-2 -right-2 text-[#5A5A40]"
-                >
-                  <Leaf size={18} fill="currentColor" />
-                </motion.div>
               </div>
 
               <AnimatePresence mode="wait">
