@@ -159,6 +159,12 @@ export default function App() {
     }
   }, [step]);
 
+  useEffect(() => {
+    if (selectedPatient) {
+      fetchConsultations(selectedPatient.id);
+    }
+  }, [selectedPatient]);
+
   const fetchPatients = async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
@@ -169,6 +175,17 @@ export default function App() {
       .order('created_at', { ascending: false });
     if (!error && data) {
       setPatients(data);
+    }
+  };
+
+  const fetchConsultations = async (patientId: string) => {
+    const { data, error } = await supabase
+      .from('consultations')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+    if (!error && data) {
+      setPatientConsultations(data);
     }
   };
 
@@ -1154,9 +1171,12 @@ export default function App() {
                                   Ver
                                 </button>
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     if (window.confirm('Tem certeza que deseja excluir esta consulta?')) {
-                                      setPatientConsultations(prev => prev.filter(c => c.id !== consult.id));
+                                      const { error } = await supabase.from('consultations').delete().eq('id', consult.id);
+                                      if (!error) {
+                                        setPatientConsultations(prev => prev.filter(c => c.id !== consult.id));
+                                      }
                                     }
                                   }}
                                   className="p-2 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
@@ -1215,7 +1235,7 @@ export default function App() {
                   <button onClick={() => setActiveTab('requests')} className="text-sm font-bold text-brand-olive uppercase tracking-widest hover:underline">Ver Todos</button>
                 </div>
                 <div className="p-6 space-y-4">
-                  {mockRequests.slice(0, 4).map((req, i) => (
+                  {requests.slice(0, 4).map((req, i) => (
                     <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-all cursor-pointer group">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl bg-white dark:bg-dark-card shadow-sm flex items-center justify-center text-purple-500">
@@ -1287,7 +1307,7 @@ export default function App() {
                     {activeTab === 'patients' ? 'Lista de Pacientes' : activeTab === 'requests' ? 'Pedidos Médicos' : 'Agenda Semanal'}
                   </h3>
                   <div className="bg-gray-100 dark:bg-white/5 px-3 py-1 rounded-full text-xs font-bold text-gray-400 uppercase tracking-widest">
-                    {activeTab === 'patients' ? mockPatients.length : activeTab === 'requests' ? mockRequests.length : 'Fev 2026'}
+                    {activeTab === 'patients' ? patients.length : activeTab === 'requests' ? requests.length : 'Fev 2026'}
                   </div>
                 </div>
 
@@ -1407,7 +1427,7 @@ export default function App() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                      {(activeTab === 'patients' ? mockPatients : mockRequests).map((item: any, i) => (
+                      {(activeTab === 'patients' ? patients : requests).map((item: any, i) => (
                         <tr
                           key={item.id}
                           onClick={() => {
@@ -1513,7 +1533,7 @@ export default function App() {
                       className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none"
                     >
                       <option value="">Selecione um paciente</option>
-                      {mockPatients.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
+                      {patients.map(p => <option key={p.id} value={p.name}>{p.name}</option>)}
                     </select>
                   </div>
 
@@ -2033,15 +2053,19 @@ export default function App() {
                   <p className="text-sm text-gray-500">Registre a consulta do seu paciente e tenha acesso as métricas completas do seu consultório.</p>
                 </div>
 
-                <form className="p-8 space-y-6" onSubmit={(e) => {
+                <form className="p-8 space-y-6" onSubmit={async (e) => {
                   e.preventDefault();
-                  if (newConsultationDate) {
-                    setPatientConsultations(prev => [{
-                      id: Date.now(),
+                  if (newConsultationDate && selectedPatient) {
+                    const newConsult = {
+                      patient_id: selectedPatient.id,
                       date: newConsultationDate,
                       notes: newConsultationNotes,
                       planner: newConsultationPlanner
-                    }, ...prev]);
+                    };
+                    const { data, error } = await supabase.from('consultations').insert([newConsult]).select();
+                    if (!error && data) {
+                      setPatientConsultations(prev => [data[0], ...prev]);
+                    }
                     setShowNewConsultationModal(false);
                     setNewConsultationDate('');
                     setNewConsultationNotes('');
@@ -2149,27 +2173,49 @@ export default function App() {
                   </button>
                 </div>
 
-                <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setShowPatientModal(false); }}>
+                <form className="space-y-6" onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  const newPatient = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    whatsapp: formData.get('whatsapp'),
+                    birth_date: formData.get('birthDate'),
+                    objective: formData.get('objective'),
+                    gender: formData.get('gender'),
+                    status: 'Ativo'
+                  };
+
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const { data, error } = await supabase.from('patients').insert([{ ...newPatient, doctor_id: user.id }]).select();
+                    if (!error && data) {
+                      setPatients(prev => [data[0], ...prev]);
+                    }
+                  }
+
+                  setShowPatientModal(false);
+                }}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Nome Completo</label>
-                      <input required type="text" placeholder="Nome do paciente" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                      <input name="name" required type="text" placeholder="Nome do paciente" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">E-mail</label>
-                      <input required type="email" placeholder="exemplo@email.com" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                      <input name="email" required type="email" placeholder="exemplo@email.com" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">WhatsApp</label>
-                      <input required type="tel" placeholder="(00) 00000-0000" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                      <input name="whatsapp" required type="tel" placeholder="(00) 00000-0000" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Data de Nascimento</label>
-                      <input required type="date" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                      <input name="birthDate" required type="date" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Objetivo</label>
-                      <select required className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
+                      <select name="objective" required className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
                         <option value="">Selecione o objetivo</option>
                         <option value="Emagrecimento">Emagrecimento</option>
                         <option value="Hipertrofia">Hipertrofia</option>
@@ -2179,7 +2225,7 @@ export default function App() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Gênero</label>
-                      <select required className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
+                      <select name="gender" required className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
                         <option value="">Selecione</option>
                         <option value="Feminino">Feminino</option>
                         <option value="Masculino">Masculino</option>
