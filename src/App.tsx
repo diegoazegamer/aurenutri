@@ -845,7 +845,6 @@ export default function App() {
                     <div className="p-2 space-y-1">
                       {[
                         { label: 'Acompanhamento', active: true },
-                        { label: 'Avaliação integrada', badge: 'NOVIDADE' },
                         { label: 'Perfil do paciente' },
                         { label: 'Histórico de consultas' },
                         { label: 'Anamnese geral' },
@@ -874,11 +873,6 @@ export default function App() {
                             }`}
                         >
                           <span>{item.label}</span>
-                          {item.badge && (
-                            <span className="bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-md">
-                              {item.badge}
-                            </span>
-                          )}
                         </button>
                       ))}
                     </div>
