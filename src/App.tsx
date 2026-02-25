@@ -845,7 +845,6 @@ export default function App() {
                 >
                   <ArrowLeft size={20} />
                 </button>
-                <h3 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink">Paciente {selectedPatient.name}, 41 anos.</h3>
               </div>
 
               <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -864,23 +863,13 @@ export default function App() {
                         <Check size={12} className="text-white" />
                       </div>
                     </div>
-                    <h4 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink mb-1">{selectedPatient.name}</h4>
+                    <h4 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink mb-1">{selectedPatient.name}</h4>
                     <p className="text-xs text-gray-400 font-medium mb-4">{selectedPatient.objective}</p>
 
-                    <button className="w-full bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-3 rounded-xl shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 text-sm mb-3">
-                      <Utensils size={16} />
+                    <button className="w-full bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-4 rounded-xl shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 text-base">
+                      <Utensils size={18} />
                       Novo Plano
                     </button>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button onClick={() => setShowExamsModal(true)} className="bg-gray-50 dark:bg-white/5 text-brand-ink dark:text-dark-ink font-bold py-2 rounded-xl border border-transparent hover:border-gray-200 dark:hover:border-white/10 text-xs flex items-center justify-center gap-1">
-                        <FileText size={14} className="text-green-500" />
-                        Exames
-                      </button>
-                      <button onClick={() => setShowPrescriptionModal(true)} className="bg-gray-50 dark:bg-white/5 text-brand-ink dark:text-dark-ink font-bold py-2 rounded-xl border border-transparent hover:border-gray-200 dark:hover:border-white/10 text-xs flex items-center justify-center gap-1">
-                        <ClipboardList size={14} className="text-purple-500" />
-                        Receitas
-                      </button>
-                    </div>
                   </div>
 
                   <div className="bg-white dark:bg-dark-card p-6 rounded-[32px] shadow-sm border border-white/20 dark:border-white/5">
@@ -891,8 +880,8 @@ export default function App() {
                           <Mail size={14} />
                         </div>
                         <div className="overflow-hidden">
-                          <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">E-mail</p>
-                          <p className="text-xs font-medium text-brand-ink dark:text-dark-ink truncate">{selectedPatient.email}</p>
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">E-mail</p>
+                          <p className="text-sm font-medium text-brand-ink dark:text-dark-ink truncate">{selectedPatient.email}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -900,8 +889,8 @@ export default function App() {
                           <Phone size={14} />
                         </div>
                         <div>
-                          <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">WhatsApp</p>
-                          <p className="text-xs font-medium text-brand-ink dark:text-dark-ink">(11) 99876-5432</p>
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">WhatsApp</p>
+                          <p className="text-sm font-medium text-brand-ink dark:text-dark-ink">(11) 99876-5432</p>
                         </div>
                       </div>
                     </div>
