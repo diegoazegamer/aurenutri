@@ -777,12 +777,7 @@ export default function App() {
               </div>
               <h1 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Dra. Aure</h1>
             </div>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-brand-olive dark:text-brand-gold"
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </button>
+
           </header>
 
           {/* Top Bar (Desktop) */}
@@ -792,12 +787,7 @@ export default function App() {
               <p className="text-sm text-gray-500">Bem-vinda de volta ao seu consultório digital.</p>
             </div>
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-brand-olive dark:text-brand-gold"
-              >
-                {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-              </button>
+
               <div className="flex items-center gap-3 bg-white dark:bg-dark-card p-2 pr-4 rounded-2xl shadow-sm border border-white/20 dark:border-white/5">
                 <div className="w-10 h-10 rounded-xl overflow-hidden">
                   <img src="https://images.unsplash.com/photo-1559839734-2b71f1536780?auto=format&fit=crop&q=80&w=150&h=150" alt="Doctor" className="w-full h-full object-cover" />
