@@ -1144,7 +1144,11 @@ export default function App() {
                                   Ver
                                 </button>
                                 <button
-                                  onClick={() => setPatientConsultations(prev => prev.filter(c => c.id !== consult.id))}
+                                  onClick={() => {
+                                    if (window.confirm('Tem certeza que deseja excluir esta consulta?')) {
+                                      setPatientConsultations(prev => prev.filter(c => c.id !== consult.id));
+                                    }
+                                  }}
                                   className="p-2 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
                                 >
                                   <Trash2 size={20} />
@@ -1999,6 +2003,120 @@ export default function App() {
           )}
         </AnimatePresence>
         <AnimatePresence>
+          {showNewConsultationModal && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowNewConsultationModal(false)}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+              >
+                <div className="p-8 text-center border-b border-gray-100 dark:border-white/5">
+                  <h3 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink mb-2">Você está realizando uma nova consulta?</h3>
+                  <p className="text-sm text-gray-500">Registre a consulta do seu paciente e tenha acesso as métricas completas do seu consultório.</p>
+                </div>
+
+                <form className="p-8 space-y-6" onSubmit={(e) => {
+                  e.preventDefault();
+                  if (newConsultationDate) {
+                    setPatientConsultations(prev => [{
+                      id: Date.now(),
+                      date: newConsultationDate,
+                      notes: newConsultationNotes,
+                      planner: newConsultationPlanner
+                    }, ...prev]);
+                    setShowNewConsultationModal(false);
+                    setNewConsultationDate('');
+                    setNewConsultationNotes('');
+                    setNewConsultationPlanner(false);
+                  }
+                }}>
+                  <div className="space-y-4">
+                    <input
+                      required
+                      type="text"
+                      value={newConsultationDate}
+                      onChange={(e) => setNewConsultationDate(e.target.value)}
+                      placeholder="25/02/2026"
+                      className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center font-bold text-brand-ink dark:text-dark-ink"
+                    />
+                    <input
+                      type="text"
+                      value={newConsultationNotes}
+                      onChange={(e) => setNewConsultationNotes(e.target.value)}
+                      placeholder="Observação desta consulta"
+                      className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center text-sm text-gray-400"
+                    />
+                    <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 flex justify-between items-center">
+                      <span className="text-sm text-gray-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis">Criar uma tarefa da consulta no planner</span>
+                      <button
+                        type="button"
+                        onClick={() => setNewConsultationPlanner(!newConsultationPlanner)}
+                        className={`shrink-0 w-10 h-6 rounded-full p-1 transition-colors cursor-pointer ${newConsultationPlanner ? 'bg-gray-400' : 'bg-gray-200 dark:bg-white/10'}`}
+                      >
+                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${newConsultationPlanner ? 'translate-x-4' : ''}`} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <button type="submit" className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-3.5 rounded-xl transition-all">
+                    registrar nova consulta
+                  </button>
+                </form>
+              </motion.div>
+            </div>
+          )}
+
+          {showConsultationDetailsModal && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowConsultationDetailsModal(null)}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+              >
+                <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
+                  <div>
+                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Consulta</h3>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-relaxed mt-1">
+                      {showConsultationDetailsModal.date}
+                    </p>
+                  </div>
+                  <button onClick={() => setShowConsultationDetailsModal(null)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                    <X size={20} />
+                  </button>
+                </div>
+                <div className="p-8">
+                  <h4 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-2">Anotações da consulta:</h4>
+                  <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl text-sm text-gray-600 dark:text-gray-300 min-h-[100px]">
+                    {showConsultationDetailsModal.notes || 'Nenhuma anotação registrada.'}
+                  </div>
+
+                  {showConsultationDetailsModal.planner && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <span className="px-3 py-1 bg-brand-olive/10 text-brand-olive rounded-full text-xs font-bold uppercase tracking-widest">
+                        Tarefa Criada
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
           {showPatientModal && (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
               <motion.div
@@ -2726,120 +2844,6 @@ export default function App() {
                     {!loading && <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                   </button>
                 </motion.form>
-              )}
-              {showNewConsultationModal && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setShowNewConsultationModal(false)}
-                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
-                  >
-                    <div className="p-8 text-center border-b border-gray-100 dark:border-white/5">
-                      <h3 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink mb-2">Você está realizando uma nova consulta?</h3>
-                      <p className="text-sm text-gray-500">Registre a consulta do seu paciente e tenha acesso as métricas completas do seu consultório.</p>
-                    </div>
-
-                    <form className="p-8 space-y-6" onSubmit={(e) => {
-                      e.preventDefault();
-                      if (newConsultationDate) {
-                        setPatientConsultations(prev => [{
-                          id: Date.now(),
-                          date: newConsultationDate,
-                          notes: newConsultationNotes,
-                          planner: newConsultationPlanner
-                        }, ...prev]);
-                        setShowNewConsultationModal(false);
-                        setNewConsultationDate('');
-                        setNewConsultationNotes('');
-                        setNewConsultationPlanner(false);
-                      }
-                    }}>
-                      <div className="space-y-4">
-                        <input
-                          required
-                          type="text"
-                          value={newConsultationDate}
-                          onChange={(e) => setNewConsultationDate(e.target.value)}
-                          placeholder="25/02/2026"
-                          className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center font-bold text-brand-ink dark:text-dark-ink"
-                        />
-                        <input
-                          type="text"
-                          value={newConsultationNotes}
-                          onChange={(e) => setNewConsultationNotes(e.target.value)}
-                          placeholder="Observação desta consulta"
-                          className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center text-sm text-gray-400"
-                        />
-                        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 flex justify-between items-center">
-                          <span className="text-sm text-gray-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis">Criar uma tarefa da consulta no planner</span>
-                          <button
-                            type="button"
-                            onClick={() => setNewConsultationPlanner(!newConsultationPlanner)}
-                            className={`shrink-0 w-10 h-6 rounded-full p-1 transition-colors cursor-pointer ${newConsultationPlanner ? 'bg-gray-400' : 'bg-gray-200 dark:bg-white/10'}`}
-                          >
-                            <div className={`w-4 h-4 bg-white rounded-full transition-transform ${newConsultationPlanner ? 'translate-x-4' : ''}`} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <button type="submit" className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-3.5 rounded-xl transition-all">
-                        registrar nova consulta
-                      </button>
-                    </form>
-                  </motion.div>
-                </div>
-              )}
-
-              {showConsultationDetailsModal && (
-                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    onClick={() => setShowConsultationDetailsModal(null)}
-                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
-                  >
-                    <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
-                      <div>
-                        <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Consulta</h3>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-relaxed mt-1">
-                          {showConsultationDetailsModal.date}
-                        </p>
-                      </div>
-                      <button onClick={() => setShowConsultationDetailsModal(null)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                        <X size={20} />
-                      </button>
-                    </div>
-                    <div className="p-8">
-                      <h4 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-2">Anotações da consulta:</h4>
-                      <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl text-sm text-gray-600 dark:text-gray-300 min-h-[100px]">
-                        {showConsultationDetailsModal.notes || 'Nenhuma anotação registrada.'}
-                      </div>
-
-                      {showConsultationDetailsModal.planner && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          <span className="px-3 py-1 bg-brand-olive/10 text-brand-olive rounded-full text-xs font-bold uppercase tracking-widest">
-                            Tarefa Criada
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                </div>
               )}
             </AnimatePresence>
           </div>
