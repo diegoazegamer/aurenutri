@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
+import { supabase } from './lib/supabase';
 
 interface Patient {
   id: number;
@@ -75,22 +76,10 @@ export default function App() {
   const [newConsultationNotes, setNewConsultationNotes] = useState('');
   const [newConsultationPlanner, setNewConsultationPlanner] = useState(false);
   const [showConsultationDetailsModal, setShowConsultationDetailsModal] = useState<any>(null);
-  const [patientConsultations, setPatientConsultations] = useState([
-    { id: 1, date: '15/01/2026', notes: 'Primeira consulta. Paciente relata dificuldade em dormir e ganho de peso recente.', planner: true },
-    { id: 2, date: '10/02/2026', notes: 'Retorno. Perda de 2kg. Melhoria no sono, mas ainda sente fadiga à tarde.', planner: false },
-  ]);
+  const [patientConsultations, setPatientConsultations] = useState<any[]>([]);
 
-  const mockPatients = [
-    { id: 1, name: 'Maria Silva', email: 'maria@email.com', status: 'Ativo', lastConsult: '12/02/2026', objective: 'Emagrecimento' },
-    { id: 2, name: 'João Pereira', email: 'joao@email.com', status: 'Pendente', lastConsult: '05/02/2026', objective: 'Hipertrofia' },
-    { id: 3, name: 'Ana Costa', email: 'ana@email.com', status: 'Ativo', lastConsult: '20/02/2026', objective: 'Manutenção' },
-    { id: 4, name: 'Pedro Santos', email: 'pedro@email.com', status: 'Inativo', lastConsult: '10/01/2026', objective: 'Emagrecimento' },
-  ];
-
-  const mockRequests = [
-    { id: 1, patient: 'Maria Silva', type: 'Exame de Sangue', date: '22/02/2026', status: 'Enviado' },
-    { id: 2, patient: 'João Pereira', type: 'Suplementação', date: '21/02/2026', status: 'Pendente' },
-  ];
+  const [patients, setPatients] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
 
   const mockAppointments = [
     { id: 1, patient: 'Maria Silva', time: '09:00', duration: 60, day: 'Seg', date: '23/02', color: 'bg-blue-500', type: 'Check-up' },
@@ -163,6 +152,25 @@ export default function App() {
       document.documentElement.classList.remove('dark');
     }
   }, [darkMode]);
+
+  useEffect(() => {
+    if (step === 'doctor-dashboard') {
+      fetchPatients();
+    }
+  }, [step]);
+
+  const fetchPatients = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { data, error } = await supabase
+      .from('patients')
+      .select('*')
+      .eq('doctor_id', user.id)
+      .order('created_at', { ascending: false });
+    if (!error && data) {
+      setPatients(data);
+    }
+  };
 
   // Auth States
   const [name, setName] = useState('');
@@ -260,24 +268,26 @@ export default function App() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const endpoint = isLogin ? '/api/login' : '/api/register';
-    const body = isLogin ? { email, password } : { name, email, password, whatsapp };
-
     try {
-      const res = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setUser(data.user);
-        setStep('onboarding');
+      if (isLogin) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setUser({ id: data.user.id as any, name: 'Dra. Aure', email, whatsapp: '' });
+        setStep('doctor-dashboard');
       } else {
-        setError(data.error || 'Ocorreu um erro');
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setUser({ id: data.user?.id as any, name, email, whatsapp });
+        setStep('onboarding');
       }
-    } catch (err) {
-      setError('Erro de conexão com o servidor');
+    } catch (err: any) {
+      setError(err.message || 'Erro de conexão com o servidor');
     } finally {
       setLoading(false);
     }
