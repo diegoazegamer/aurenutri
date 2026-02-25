@@ -838,54 +838,6 @@ export default function App() {
               </div>
 
               <div className="flex flex-col lg:flex-row gap-6 items-start">
-                {/* Left Column: Profile & Contact (Aligned Left) */}
-                <div className="w-full lg:w-80 space-y-6 shrink-0">
-                  <div className="bg-white dark:bg-dark-card p-6 rounded-[32px] shadow-sm border border-white/20 dark:border-white/5 text-center">
-                    <div className="relative inline-block mb-4">
-                      <div className="w-24 h-24 rounded-full border-4 border-white dark:border-dark-card shadow-lg overflow-hidden">
-                        <img
-                          src={`https://images.unsplash.com/photo-${selectedPatient.id === 1 ? '1494790108377-be9c29b29330' : '1507003211169-0a1dd7228f2d'}?auto=format&fit=crop&q=80&w=200&h=200`}
-                          alt={selectedPatient.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-dark-card flex items-center justify-center">
-                        <Check size={12} className="text-white" />
-                      </div>
-                    </div>
-                    <h4 className="serif text-3xl font-bold text-brand-ink dark:text-dark-ink mb-1">{selectedPatient.name}</h4>
-                    <p className="text-xs text-gray-400 font-medium mb-4">{selectedPatient.objective}</p>
-
-                    <button className="w-full bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-4 rounded-xl shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 text-base">
-                      <Utensils size={18} />
-                      Novo Plano
-                    </button>
-                  </div>
-
-                  <div className="bg-white dark:bg-dark-card p-6 rounded-[32px] shadow-sm border border-white/20 dark:border-white/5">
-                    <h5 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Contato</h5>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
-                          <Mail size={14} />
-                        </div>
-                        <div className="overflow-hidden">
-                          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">E-mail</p>
-                          <p className="text-base font-medium text-brand-ink dark:text-dark-ink truncate">{selectedPatient.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500">
-                          <Phone size={14} />
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">WhatsApp</p>
-                          <p className="text-base font-medium text-brand-ink dark:text-dark-ink">(11) 99876-5432</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Middle Column: Secondary Menu */}
                 <div className="w-full lg:w-72 shrink-0">
