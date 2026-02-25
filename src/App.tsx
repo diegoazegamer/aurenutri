@@ -863,7 +863,7 @@ export default function App() {
                         <Check size={12} className="text-white" />
                       </div>
                     </div>
-                    <h4 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink mb-1">{selectedPatient.name}</h4>
+                    <h4 className="serif text-3xl font-bold text-brand-ink dark:text-dark-ink mb-1">{selectedPatient.name}</h4>
                     <p className="text-xs text-gray-400 font-medium mb-4">{selectedPatient.objective}</p>
 
                     <button className="w-full bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-4 rounded-xl shadow-lg shadow-green-500/20 transition-all flex items-center justify-center gap-2 text-base">
@@ -880,8 +880,8 @@ export default function App() {
                           <Mail size={14} />
                         </div>
                         <div className="overflow-hidden">
-                          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">E-mail</p>
-                          <p className="text-sm font-medium text-brand-ink dark:text-dark-ink truncate">{selectedPatient.email}</p>
+                          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">E-mail</p>
+                          <p className="text-base font-medium text-brand-ink dark:text-dark-ink truncate">{selectedPatient.email}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
@@ -889,8 +889,8 @@ export default function App() {
                           <Phone size={14} />
                         </div>
                         <div>
-                          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">WhatsApp</p>
-                          <p className="text-sm font-medium text-brand-ink dark:text-dark-ink">(11) 99876-5432</p>
+                          <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">WhatsApp</p>
+                          <p className="text-base font-medium text-brand-ink dark:text-dark-ink">(11) 99876-5432</p>
                         </div>
                       </div>
                     </div>
@@ -1043,7 +1043,7 @@ export default function App() {
                     <div className="bg-white dark:bg-dark-card rounded-[40px] shadow-sm border border-white/20 dark:border-white/5 overflow-hidden flex flex-col">
                       {/* Header */}
                       <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
-                        <h4 className="font-bold text-brand-ink dark:text-dark-ink truncate">Paciente {selectedPatient.name}, 41 anos.</h4>
+                        <h4 className="font-bold text-brand-ink dark:text-dark-ink truncate text-2xl serif">{selectedPatient.name}</h4>
                         <button onClick={() => setActiveSubTab('Acompanhamento')} className="text-gray-400 hover:text-red-500 transition-colors">
                           <X size={20} />
                         </button>
@@ -1888,36 +1888,20 @@ export default function App() {
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button className="bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-4 rounded-3xl shadow-lg shadow-green-500/20 transition-all flex flex-col items-center justify-center gap-1">
-                      <Utensils size={18} />
-                      <span className="text-xs uppercase tracking-widest">Plano</span>
-                    </button>
-                    <button
-                      onClick={() => setShowExamsModal(true)}
-                      className="bg-white dark:bg-dark-card text-brand-ink dark:text-dark-ink font-bold py-4 rounded-3xl shadow-sm border border-white/20 dark:border-white/5 transition-all flex flex-col items-center justify-center gap-1"
-                    >
-                      <FileText size={18} className="text-green-500" />
-                      <span className="text-xs uppercase tracking-widest">Exames</span>
-                    </button>
-                    <button
-                      onClick={() => setShowPrescriptionModal(true)}
-                      className="bg-white dark:bg-dark-card text-brand-ink dark:text-dark-ink font-bold py-4 rounded-3xl shadow-sm border border-white/20 dark:border-white/5 transition-all flex flex-col items-center justify-center gap-1"
-                    >
-                      <ClipboardList size={18} className="text-purple-500" />
-                      <span className="text-xs uppercase tracking-widest">Receitas</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowPatientDetailsModal(false);
-                        setActiveTab('appointments');
-                      }}
-                      className="bg-white dark:bg-dark-card text-brand-ink dark:text-dark-ink font-bold py-4 rounded-3xl shadow-sm border border-white/20 dark:border-white/5 transition-all flex flex-col items-center justify-center gap-1"
-                    >
-                      <Calendar size={18} className="text-blue-500" />
-                      <span className="text-xs uppercase tracking-widest">Agendar</span>
-                    </button>
-                  </div>
+                  <button className="bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-4 rounded-3xl shadow-lg shadow-green-500/20 transition-all flex flex-col items-center justify-center gap-1 col-span-2">
+                    <Utensils size={18} />
+                    <span className="text-base uppercase tracking-widest">Plano</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowPatientDetailsModal(false);
+                      setActiveTab('appointments');
+                    }}
+                    className="bg-white dark:bg-dark-card text-brand-ink dark:text-dark-ink font-bold py-4 rounded-3xl shadow-sm border border-white/20 dark:border-white/5 transition-all flex flex-col items-center justify-center gap-1 col-span-2"
+                  >
+                    <Calendar size={18} className="text-blue-500" />
+                    <span className="text-base uppercase tracking-widest">Agendar</span>
+                  </button>
 
                   {/* Evolution Chart */}
                   <div className="bg-white dark:bg-dark-card p-6 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5">
