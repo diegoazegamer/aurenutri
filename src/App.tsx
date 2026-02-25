@@ -69,6 +69,17 @@ export default function App() {
   const [requestPatient, setRequestPatient] = useState('');
   const [requestType, setRequestType] = useState('');
 
+  // Novas consultas states
+  const [showNewConsultationModal, setShowNewConsultationModal] = useState(false);
+  const [newConsultationDate, setNewConsultationDate] = useState('');
+  const [newConsultationNotes, setNewConsultationNotes] = useState('');
+  const [newConsultationPlanner, setNewConsultationPlanner] = useState(false);
+  const [showConsultationDetailsModal, setShowConsultationDetailsModal] = useState<any>(null);
+  const [patientConsultations, setPatientConsultations] = useState([
+    { id: 1, date: '15/01/2026', notes: 'Primeira consulta. Paciente relata dificuldade em dormir e ganho de peso recente.', planner: true },
+    { id: 2, date: '10/02/2026', notes: 'Retorno. Perda de 2kg. Melhoria no sono, mas ainda sente fadiga à tarde.', planner: false },
+  ]);
+
   const mockPatients = [
     { id: 1, name: 'Maria Silva', email: 'maria@email.com', status: 'Ativo', lastConsult: '12/02/2026', objective: 'Emagrecimento' },
     { id: 2, name: 'João Pereira', email: 'joao@email.com', status: 'Pendente', lastConsult: '05/02/2026', objective: 'Hipertrofia' },
@@ -867,7 +878,7 @@ export default function App() {
                         <button
                           key={i}
                           onClick={() => setActiveSubTab(item.label)}
-                          className={`w-full text-left px-4 py-2.5 rounded-xl text-xs font-medium transition-all flex items-center justify-between ${activeSubTab === item.label
+                          className={`w-full text-left px-4 py-2.5 rounded-xl text-base font-bold transition-all flex items-center justify-between ${activeSubTab === item.label
                             ? 'bg-[#00E676] text-white shadow-md shadow-green-500/20'
                             : 'text-gray-500 hover:bg-gray-50 dark:hover:bg-white/5'
                             }`}
@@ -1096,6 +1107,52 @@ export default function App() {
                             Reações a refeições <span className="text-xs text-gray-300">?</span>
                           </h5>
                         </section>
+                      </div>
+                    </div>
+                  ) : activeSubTab === 'Histórico de consultas' ? (
+                    <div className="bg-white dark:bg-dark-card p-8 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                        <div>
+                          <h5 className="text-xl font-bold text-brand-ink dark:text-dark-ink">Histórico de consultas</h5>
+                          <p className="text-sm text-gray-400 mt-1">Gerencie as consultas deste paciente</p>
+                        </div>
+                        <button
+                          onClick={() => setShowNewConsultationModal(true)}
+                          className="bg-[#1DE9B6] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:brightness-95 transition-all"
+                        >
+                          Nova Consulta
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        {patientConsultations.length === 0 ? (
+                          <div className="text-center py-10 bg-gray-50 dark:bg-white/5 rounded-3xl">
+                            <p className="text-gray-400 font-medium">Nenhuma consulta registrada ainda.</p>
+                          </div>
+                        ) : (
+                          patientConsultations.map((consult) => (
+                            <div key={consult.id} className="p-5 rounded-3xl bg-gray-50 dark:bg-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-gray-100 dark:border-white/5">
+                              <div>
+                                <p className="font-bold text-brand-ink dark:text-dark-ink">{consult.date}</p>
+                                <p className="text-sm text-gray-500 line-clamp-1">{consult.notes || 'Sem observações'}</p>
+                              </div>
+                              <div className="flex gap-2 w-full sm:w-auto">
+                                <button
+                                  onClick={() => setShowConsultationDetailsModal(consult)}
+                                  className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-brand-olive hover:bg-gray-50 transition-colors"
+                                >
+                                  Ver
+                                </button>
+                                <button
+                                  onClick={() => setPatientConsultations(prev => prev.filter(c => c.id !== consult.id))}
+                                  className="p-2 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                                >
+                                  <Trash2 size={20} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
                   ) : (
@@ -2669,6 +2726,120 @@ export default function App() {
                     {!loading && <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />}
                   </button>
                 </motion.form>
+              )}
+              {showNewConsultationModal && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowNewConsultationModal(false)}
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+                  >
+                    <div className="p-8 text-center border-b border-gray-100 dark:border-white/5">
+                      <h3 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink mb-2">Você está realizando uma nova consulta?</h3>
+                      <p className="text-sm text-gray-500">Registre a consulta do seu paciente e tenha acesso as métricas completas do seu consultório.</p>
+                    </div>
+
+                    <form className="p-8 space-y-6" onSubmit={(e) => {
+                      e.preventDefault();
+                      if (newConsultationDate) {
+                        setPatientConsultations(prev => [{
+                          id: Date.now(),
+                          date: newConsultationDate,
+                          notes: newConsultationNotes,
+                          planner: newConsultationPlanner
+                        }, ...prev]);
+                        setShowNewConsultationModal(false);
+                        setNewConsultationDate('');
+                        setNewConsultationNotes('');
+                        setNewConsultationPlanner(false);
+                      }
+                    }}>
+                      <div className="space-y-4">
+                        <input
+                          required
+                          type="text"
+                          value={newConsultationDate}
+                          onChange={(e) => setNewConsultationDate(e.target.value)}
+                          placeholder="25/02/2026"
+                          className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center font-bold text-brand-ink dark:text-dark-ink"
+                        />
+                        <input
+                          type="text"
+                          value={newConsultationNotes}
+                          onChange={(e) => setNewConsultationNotes(e.target.value)}
+                          placeholder="Observação desta consulta"
+                          className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center text-sm text-gray-400"
+                        />
+                        <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 flex justify-between items-center">
+                          <span className="text-sm text-gray-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis">Criar uma tarefa da consulta no planner</span>
+                          <button
+                            type="button"
+                            onClick={() => setNewConsultationPlanner(!newConsultationPlanner)}
+                            className={`shrink-0 w-10 h-6 rounded-full p-1 transition-colors cursor-pointer ${newConsultationPlanner ? 'bg-gray-400' : 'bg-gray-200 dark:bg-white/10'}`}
+                          >
+                            <div className={`w-4 h-4 bg-white rounded-full transition-transform ${newConsultationPlanner ? 'translate-x-4' : ''}`} />
+                          </button>
+                        </div>
+                      </div>
+
+                      <button type="submit" className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-3.5 rounded-xl transition-all">
+                        registrar nova consulta
+                      </button>
+                    </form>
+                  </motion.div>
+                </div>
+              )}
+
+              {showConsultationDetailsModal && (
+                <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={() => setShowConsultationDetailsModal(null)}
+                    className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+                  >
+                    <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
+                      <div>
+                        <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Consulta</h3>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-relaxed mt-1">
+                          {showConsultationDetailsModal.date}
+                        </p>
+                      </div>
+                      <button onClick={() => setShowConsultationDetailsModal(null)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                        <X size={20} />
+                      </button>
+                    </div>
+                    <div className="p-8">
+                      <h4 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-2">Anotações da consulta:</h4>
+                      <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl text-sm text-gray-600 dark:text-gray-300 min-h-[100px]">
+                        {showConsultationDetailsModal.notes || 'Nenhuma anotação registrada.'}
+                      </div>
+
+                      {showConsultationDetailsModal.planner && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          <span className="px-3 py-1 bg-brand-olive/10 text-brand-olive rounded-full text-xs font-bold uppercase tracking-widest">
+                            Tarefa Criada
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                </div>
               )}
             </AnimatePresence>
           </div>
