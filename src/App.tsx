@@ -80,6 +80,28 @@ export default function App() {
   const [showConsultationDetailsModal, setShowConsultationDetailsModal] = useState<any>(null);
   const [patientConsultations, setPatientConsultations] = useState<any[]>([]);
 
+  const handleOpenNewConsultation = () => {
+    const today = new Date();
+    const formatted = today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    setNewConsultationDate(formatted);
+    setShowNewConsultationModal(true);
+  };
+
+  const handleConsultationDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, '');
+    if (value.length > 8) value = value.slice(0, 8);
+
+    let formatted = value;
+    if (value.length > 2) {
+      formatted = value.slice(0, 2) + '/' + value.slice(2);
+    }
+    if (value.length > 4) {
+      formatted = formatted.slice(0, 5) + '/' + value.slice(4);
+    }
+
+    setNewConsultationDate(formatted);
+  };
+
   const [patients, setPatients] = useState<any[]>([]);
   const [requests, setRequests] = useState<any[]>([]);
 
@@ -1184,7 +1206,7 @@ export default function App() {
                           <p className="text-sm text-gray-400 mt-1">Gerencie as consultas deste paciente</p>
                         </div>
                         <button
-                          onClick={() => setShowNewConsultationModal(true)}
+                          onClick={handleOpenNewConsultation}
                           className="bg-[#1DE9B6] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:brightness-95 transition-all"
                         >
                           Nova Consulta
@@ -2117,7 +2139,7 @@ export default function App() {
                       required
                       type="text"
                       value={newConsultationDate}
-                      onChange={(e) => setNewConsultationDate(e.target.value)}
+                      onChange={handleConsultationDateChange}
                       placeholder="25/02/2026"
                       className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center font-bold text-brand-ink dark:text-dark-ink"
                     />
