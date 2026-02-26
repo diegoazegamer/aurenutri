@@ -1376,6 +1376,77 @@ export default function App() {
                         )}
                       </div>
                     </div>
+                  ) : activeSubTab === 'Antropometria geral' ? (
+                    <div className="space-y-6 animate-fade-in">
+                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                          <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">Antropometria</h3>
+                          <p className="text-sm text-gray-400 mt-1">Gerencie as avaliações antropométricas deste paciente</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setAnthropometryPeso('');
+                            setAnthropometryAltura('');
+                            setBioimpedance({});
+                            setEditingAnthropometryId(null);
+                            setShowAnthropometryModal(true);
+                          }}
+                          className="bg-[#1DE9B6] text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-sm hover:brightness-95 transition-all"
+                        >
+                          Nova Antropometria
+                        </button>
+                      </div>
+
+                      <div className="space-y-4">
+                        {patientAnthropometries.length === 0 ? (
+                          <div className="text-center py-10 bg-gray-50 dark:bg-white/5 rounded-3xl">
+                            <p className="text-gray-400 font-medium">Nenhuma antropometria registrada ainda.</p>
+                          </div>
+                        ) : (
+                          patientAnthropometries.map((anthropometry) => (
+                            <div key={anthropometry.id} className="p-5 rounded-3xl bg-gray-50 dark:bg-white/5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border border-gray-100 dark:border-white/5">
+                              <div>
+                                <p className="font-bold text-brand-ink dark:text-dark-ink">{new Date(anthropometry.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) || anthropometry.date}</p>
+                                <p className="text-sm text-gray-500 line-clamp-1">Peso: {anthropometry.peso || '-'} | IMC: {anthropometry.bioimpedance?.['IMC'] || '-'} | % Gordura: {anthropometry.bioimpedance?.['% Gordura'] || '-'}</p>
+                              </div>
+                              <div className="flex gap-2 w-full sm:w-auto">
+                                <button
+                                  onClick={() => setViewAnthropometry(anthropometry)}
+                                  className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-brand-olive hover:bg-gray-50 transition-colors"
+                                >
+                                  Visualizar
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setAnthropometryPeso(anthropometry.peso || '');
+                                    setAnthropometryAltura(anthropometry.altura || '');
+                                    setBioimpedance(anthropometry.bioimpedance || {});
+                                    setEditingAnthropometryId(anthropometry.id);
+                                    setShowAnthropometryModal(true);
+                                  }}
+                                  className="flex-1 sm:flex-none px-4 py-2 bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold uppercase tracking-widest text-blue-500 hover:bg-gray-50 transition-colors"
+                                >
+                                  Editar
+                                </button>
+                                <button
+                                  onClick={async () => {
+                                    if (window.confirm('Tem certeza que deseja excluir esta antropometria?')) {
+                                      const { error } = await supabase.from('anthropometries').delete().eq('id', anthropometry.id);
+                                      if (!error) {
+                                        setPatientAnthropometries(prev => prev.filter(a => a.id !== anthropometry.id));
+                                      }
+                                    }
+                                  }}
+                                  className="p-2 bg-red-50 dark:bg-red-500/10 text-red-500 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-colors"
+                                >
+                                  <Trash2 size={20} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
                   ) : (
                     <div className="bg-white dark:bg-dark-card p-12 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5 text-center space-y-4">
                       <div className="w-20 h-20 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-gray-300">
