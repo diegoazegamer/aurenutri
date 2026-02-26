@@ -2548,6 +2548,60 @@ export default function App() {
             </div>
           )}
 
+          {viewAnthropometry && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setViewAnthropometry(null)}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white dark:bg-dark-card w-full max-w-2xl rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+              >
+                <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                  <div>
+                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Antropometria</h3>
+                    <p className="text-sm text-gray-500">{new Date(viewAnthropometry.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) || viewAnthropometry.date}</p>
+                  </div>
+                  <button onClick={() => setViewAnthropometry(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+                <div className="p-6 max-h-[70vh] overflow-y-auto space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
+                      <p className="text-xs text-gray-400 font-bold mb-1">Peso</p>
+                      <p className="text-lg font-bold text-brand-ink dark:text-dark-ink">{viewAnthropometry.peso || '-'} Kg</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
+                      <p className="text-xs text-gray-400 font-bold mb-1">Altura</p>
+                      <p className="text-lg font-bold text-brand-ink dark:text-dark-ink">{viewAnthropometry.altura || '-'} cm</p>
+                    </div>
+                  </div>
+
+                  {viewAnthropometry.bioimpedance && Object.keys(viewAnthropometry.bioimpedance).length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="font-bold text-brand-ink dark:text-dark-ink mb-4">Métricas de Bioimpedância</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {Object.entries(viewAnthropometry.bioimpedance).map(([key, value]) => (
+                          <div key={key} className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
+                            <p className="text-xs text-gray-400 font-bold mb-1">{key}</p>
+                            <p className="font-medium text-brand-ink dark:text-dark-ink">{String(value) || '-'}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </div>
+          )}
+
           {showConsultationDetailsModal && (
             <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
               <motion.div
@@ -2794,8 +2848,15 @@ export default function App() {
                                 <div className="pt-4 mt-2 grid grid-cols-2 gap-4 transition-all">
                                   {title === 'Balança de bioimpedância' && (
                                     <>
-                                      {['% de Gordura', 'Massa Gorda', '% de Massa Muscular', 'Massa Muscular', 'Massa Livre de Gordura', 'Peso Ósseo', 'Gordura Visceral', 'Água Corporal'].map((label, j) => (
-                                        <input key={j} type="text" placeholder={label} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm text-brand-ink dark:text-dark-ink placeholder-gray-400 focus:border-[#1DE9B6] outline-none" />
+                                      {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal'].map((label, j) => (
+                                        <input
+                                          key={j}
+                                          type="text"
+                                          placeholder={label}
+                                          value={bioimpedance[label] || ''}
+                                          onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
+                                          className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm text-brand-ink dark:text-dark-ink placeholder-gray-400 focus:border-[#1DE9B6] outline-none"
+                                        />
                                       ))}
                                     </>
                                   )}
@@ -2873,7 +2934,39 @@ export default function App() {
 
                       {/* Save Button */}
                       <div className="mt-8">
-                        <button className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all text-base" type="button" onClick={() => setShowAnthropometryModal(false)}>
+                        <button
+                          className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all text-base"
+                          type="button"
+                          onClick={async () => {
+                            const anthropometryData = {
+                              patient_id: selectedPatient?.id,
+                              date: new Date().toISOString(),
+                              peso: anthropometryPeso,
+                              altura: anthropometryAltura,
+                              bioimpedance: bioimpedance
+                            };
+
+                            if (editingAnthropometryId) {
+                              const { data, error } = await supabase
+                                .from('anthropometries')
+                                .update(anthropometryData)
+                                .eq('id', editingAnthropometryId)
+                                .select();
+                              if (!error && data && data.length > 0) {
+                                setPatientAnthropometries(prev => prev.map(a => a.id === editingAnthropometryId ? data[0] : a));
+                              }
+                            } else {
+                              const { data, error } = await supabase
+                                .from('anthropometries')
+                                .insert([anthropometryData])
+                                .select();
+                              if (!error && data && data.length > 0) {
+                                setPatientAnthropometries(prev => [data[0], ...prev]);
+                              }
+                            }
+                            setShowAnthropometryModal(false);
+                          }}
+                        >
                           salvar alterações
                         </button>
                       </div>
