@@ -84,6 +84,10 @@ export default function App() {
   const [showAnthropometryModal, setShowAnthropometryModal] = useState(false);
   const [anthropometryPeso, setAnthropometryPeso] = useState('');
   const [anthropometryAltura, setAnthropometryAltura] = useState('');
+  const [bioimpedance, setBioimpedance] = useState<Record<string, string>>({});
+  const [patientAnthropometries, setPatientAnthropometries] = useState<any[]>([]);
+  const [editingAnthropometryId, setEditingAnthropometryId] = useState<number | null>(null);
+  const [viewAnthropometry, setViewAnthropometry] = useState<any>(null);
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
 
   const toggleAccordion = (title: string) => {
@@ -206,6 +210,7 @@ export default function App() {
     if (selectedPatient) {
       fetchConsultations(selectedPatient.id);
       fetchAnamnesis(selectedPatient.id);
+      fetchAnthropometries(selectedPatient.id);
     }
   }, [selectedPatient]);
 
@@ -278,6 +283,17 @@ export default function App() {
       .order('created_at', { ascending: false });
     if (!error && data) {
       setPatientAnamnesis(data);
+    }
+  };
+
+  const fetchAnthropometries = async (patientId: string) => {
+    const { data, error } = await supabase
+      .from('anthropometries')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+    if (!error && data) {
+      setPatientAnthropometries(data);
     }
   };
 
