@@ -2202,8 +2202,6 @@ export default function App() {
               </motion.div>
             </div>
           )}
-        </AnimatePresence>
-        <AnimatePresence>
           {showNewConsultationModal && (
             <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
               <motion.div
