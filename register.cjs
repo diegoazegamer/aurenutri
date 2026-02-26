@@ -10,16 +10,16 @@ const { chromium } = require('playwright');
 
     // Click Cadastre-se
     try {
-        await page.click('text=Cadastre-se');
-    } catch (e) { console.log(e.message); }
+        await page.click('text=Cadastre-se', { timeout: 5000 });
+    } catch (e) { console.log("Did not find Cadastre-se, might already be on it"); }
 
     await page.waitForTimeout(500);
 
-    // Fill the form. App.tsx has inputs for Nome, Email, WhatsApp, Senha
-    await page.fill('input[type="text"]:not([placeholder*="WhatsApp"])', 'Dra. Aurenis');
-    await page.fill('input[type="email"]', 'aurenisavitelli@gmail.com');
-    await page.fill('input[type="text"][placeholder*="WhatsApp"]', '11999999999');
-    await page.fill('input[type="password"]', 'aure@2026');
+    // Fill the form using precise placeholders
+    await page.fill('input[placeholder="Seu nome"]', 'Dra. Aurenis');
+    await page.fill('input[placeholder="(00) 00000-0000"]', '11999999999');
+    await page.fill('input[placeholder="exemplo@email.com"]', 'aurenisavitelli@gmail.com');
+    await page.fill('input[placeholder="••••••••"]', 'aure@2026');
 
     // Submit
     await page.click('text=Criar minha Conta');
@@ -28,7 +28,13 @@ const { chromium } = require('playwright');
     page.on('console', msg => console.log('LOG:', msg.text()));
 
     await page.waitForTimeout(4000);
-    console.log("Registered!");
+
+    // Check what page we are on or if there's an error
+    const bodyText = await page.innerText('body');
+    if (bodyText.includes('Processando')) {
+        await page.waitForTimeout(3000);
+    }
+    console.log("Registered? Check logs.");
 
     await browser.close();
 })();
