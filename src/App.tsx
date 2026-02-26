@@ -82,6 +82,13 @@ export default function App() {
 
   // Antropometria states
   const [showAnthropometryModal, setShowAnthropometryModal] = useState(false);
+  const [anthropometryPeso, setAnthropometryPeso] = useState('');
+  const [anthropometryAltura, setAnthropometryAltura] = useState('');
+  const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
+
+  const toggleAccordion = (title: string) => {
+    setOpenAccordions(prev => ({ ...prev, [title]: !prev[title] }));
+  };
 
   // Anamnese Geral states
   const [showNewAnamnesisModal, setShowNewAnamnesisModal] = useState(false);
@@ -1325,7 +1332,7 @@ export default function App() {
                   <p className="text-sm text-gray-400 max-w-xs mx-auto">Esta seção está em desenvolvimento e será integrada em breve para oferecer mais recursos ao seu consultório.</p>
                   <button onClick={() => setActiveSubTab('Acompanhamento')} className="text-brand-olive font-bold uppercase tracking-widest text-xs hover:underline mt-4 inline-block">Voltar para Acompanhamento</button>
                 </div>
-                  )}
+                )}
               </div>
             </div>
             </motion.div>
@@ -2552,46 +2559,75 @@ export default function App() {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                               <label className="text-xs font-bold text-gray-400 mb-1 block">Peso (Kg)</label>
-                              <input type="text" defaultValue="65" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                              <input 
+                                type="text"
+                                value={anthropometryPeso}
+                                onChange={(e) => setAnthropometryPeso(e.target.value)}
+                                placeholder="Peso (Kg)" 
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" 
+                              />
                             </div>
                             <div>
                               <label className="text-xs font-bold text-gray-400 mb-1 block">Altura (cm)</label>
-                              <input type="text" defaultValue="185" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                              <input 
+                                type="text" 
+                                value={anthropometryAltura}
+                                onChange={(e) => setAnthropometryAltura(e.target.value)}
+                                placeholder="Altura (cm)" 
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" 
+                              />
                             </div>
                             <div>
                               <label className="text-xs font-bold text-gray-400 mb-1 block">Altura sentado (cm)</label>
-                              <input type="text" defaultValue="150" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                              <input type="text" placeholder="Altura sentado (cm)" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
                             </div>
                             <div>
                               <label className="text-xs font-bold text-gray-400 mb-1 block">Altura do joelho (cm)</label>
-                              <input type="text" defaultValue="60" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                              <input type="text" placeholder="Altura do joelho (cm)" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
                             </div>
                           </div>
                         </div>
 
                         {/* Accordions */}
-                        {['Dobras cutâneas (mm)', 'Circunferências corporais (cm)', 'Diâmetro ósseo (cm)'].map((title, i) => (
-                          <div key={i} className="flex justify-between items-center bg-transparent border-b border-gray-300 dark:border-white/10 pb-4">
-                            <h4 className="font-bold text-brand-ink dark:text-dark-ink">{title}</h4>
-                            <ChevronRight className="rotate-90 text-gray-400" />
+                        {['Dobras cutâneas (mm)', 'Circunferências corporais (cm)', 'Diâmetro ósseo (cm)', 'Balança de bioimpedância', 'Evolução fotográfica'].map((title, i) => (
+                          <div key={i} className="border-b border-gray-300 dark:border-white/10 last:border-0 pb-4">
+                            <div 
+                              className="flex justify-between items-center bg-transparent cursor-pointer"
+                              onClick={() => toggleAccordion(title)}
+                            >
+                              <div>
+                                <h4 className="font-bold text-brand-ink dark:text-dark-ink">{title}</h4>
+                                {title === 'Evolução fotográfica' && <p className="text-sm text-gray-500 mt-1">Fotos técnicas do seu paciente, para avaliar a evolução</p>}
+                              </div>
+                              <ChevronRight className={`text-gray-400 transition-transform ${openAccordions[title] ? 'rotate-[-90deg]' : 'rotate-90'}`} />
+                            </div>
+                            
+                            {openAccordions[title] && (
+                              <div className="pt-4 mt-2 grid grid-cols-2 gap-4 transition-all">
+                                {title === 'Balança de bioimpedância' && (
+                                  <>
+                                    {['% de Gordura', 'Massa Gorda', '% de Massa Muscular', 'Massa Muscular', 'Massa Livre de Gordura', 'Peso Ósseo', 'Gordura Visceral', 'Água Corporal'].map((label, j) => (
+                                      <input key={j} type="text" placeholder={label} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm text-brand-ink dark:text-dark-ink placeholder-gray-400 focus:border-[#1DE9B6] outline-none" />
+                                    ))}
+                                  </>
+                                )}
+                                {title === 'Evolução fotográfica' && (
+                                  <div className="col-span-2 space-y-4">
+                                     <button className="w-full bg-gray-100 hover:bg-gray-200 text-brand-ink font-bold py-3 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                                       <Activity size={18} /> Ver evolução fotográfica
+                                     </button>
+                                     <div className="flex items-center gap-3">
+                                       <div className="w-10 h-6 bg-[#1DE9B6] rounded-full relative cursor-pointer">
+                                         <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1"></div>
+                                       </div>
+                                       <span className="text-sm text-gray-600">Liberar fotos no app do paciente? (Necessário informar o PIN SEGURO) <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span></span>
+                                     </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
-
-                        {/* Bioimpedance */}
-                        <div className="bg-transparent border-t border-gray-300 dark:border-white/10 pt-4 pb-4">
-                          <div className="flex justify-between items-center mb-4">
-                            <div>
-                              <h4 className="font-bold text-brand-ink dark:text-dark-ink">Balança de bioimpedância</h4>
-                              <p className="text-sm text-gray-500 mt-1">Insira os dados da sua balança diretamente aqui.</p>
-                            </div>
-                            <ChevronRight className="rotate-[-90deg] text-gray-400" />
-                          </div>
-                          <div className="grid grid-cols-2 gap-4">
-                            {['% de Gordura', 'Massa Gorda', '% de Massa Muscular', 'Massa Muscular', 'Massa Livre de Gordura', 'Peso Ósseo', 'Gordura Visceral', 'Água Corporal'].map((label, i) => (
-                              <input key={i} type="text" placeholder={label} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm text-brand-ink dark:text-dark-ink placeholder-gray-400 focus:border-[#1DE9B6] outline-none" />
-                            ))}
-                          </div>
-                        </div>
                       </div>
 
                       {/* Right Column: Analytical Results */}
@@ -2608,11 +2644,11 @@ export default function App() {
                           <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
                           <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 cursor-default">
                             {[
-                              ['Peso atual', '65 Kg'],
-                              ['Altura atual', '185 cm'],
-                              ['Índice de Massa Corporal', '19.0 Kg/m²'],
-                              ['Classificação do IMC', 'Eutrófico'],
-                              ['Faixa de peso ideal', '63.3 a 85.2Kg'],
+                              ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
+                              ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
+                              ['Índice de Massa Corporal', '-'],
+                              ['Classificação do IMC', '-'],
+                              ['Faixa de peso ideal', '-'],
                               ['Relação da Cintura/Quadril (RCQ)', '-'],
                               ['Risco Metabólico por RCQ', '-'],
                               ['CMB (cm) (Escolha o lado)', '-'],
@@ -2645,6 +2681,13 @@ export default function App() {
                         </div>
 
                       </div>
+                    </div>
+                    
+                    {/* Save Button */}
+                    <div className="mt-8">
+                       <button className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all text-base" type="button" onClick={() => setShowAnthropometryModal(false)}>
+                         salvar alterações
+                       </button>
                     </div>
                   </div>
                 </div>
