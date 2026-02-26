@@ -34,7 +34,9 @@ const DIETARY_OPTIONS = ['Sem Glúten', 'Vegano', 'Sem Lactose', 'Sem Açúcar',
 
 export default function App() {
   const [user, setUser] = useState<Patient | null>(null);
-  const [step, setStep] = useState<'auth' | 'onboarding' | 'health' | 'dashboard' | 'hydration' | 'doctor-dashboard'>('auth');
+  const [step, setStep] = useState<'auth' | 'onboarding' | 'health' | 'dashboard' | 'hydration' | 'doctor-dashboard'>(
+    (localStorage.getItem('app_step') as any) || 'auth'
+  );
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,6 +156,7 @@ export default function App() {
   }, [darkMode]);
 
   useEffect(() => {
+    localStorage.setItem('app_step', step);
     if (step === 'doctor-dashboard') {
       fetchPatients();
     }
@@ -164,6 +167,43 @@ export default function App() {
       fetchConsultations(selectedPatient.id);
     }
   }, [selectedPatient]);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // Hydrate basic user info
+        setUser(prev => prev || {
+          id: session.user.id as any,
+          name: session.user.user_metadata?.name || 'Dra. Aurenis', // Mock fallback
+          email: session.user.email || '',
+          whatsapp: ''
+        });
+      } else {
+        setStep('auth');
+      }
+    };
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setStep('auth');
+        localStorage.removeItem('app_step');
+      } else if (session?.user) {
+        setUser(prev => prev || {
+          id: session.user.id as any,
+          name: session.user.user_metadata?.name || 'Dra. Aurenis',
+          email: session.user.email || '',
+          whatsapp: ''
+        });
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   const fetchPatients = async () => {
     const { data: { user } } = await supabase.auth.getUser();
