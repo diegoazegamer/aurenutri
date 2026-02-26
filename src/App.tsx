@@ -1333,6 +1333,7 @@ export default function App() {
                     </div>
                   )}
                 </div>
+              </div>
             </motion.div>
           ) : activeTab === 'start' ? (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
