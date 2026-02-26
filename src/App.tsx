@@ -92,10 +92,10 @@ export default function App() {
 
   // Anamnese Geral states
   const [showNewAnamnesisModal, setShowNewAnamnesisModal] = useState(false);
-  const [patientAnamnesis, setPatientAnamnesis] = useState<any[]>([
-    { id: 1, date: '10/12/2025', title: 'Primeira consulta - Geral' },
-    { id: 2, date: '15/01/2026', title: 'Acompanhamento rotina alimentar' },
-  ]);
+  const [patientAnamnesis, setPatientAnamnesis] = useState<any[]>([]);
+  const [newAnamnesisTitle, setNewAnamnesisTitle] = useState('');
+  const [newAnamnesisContent, setNewAnamnesisContent] = useState('');
+  const [viewAnamnesis, setViewAnamnesis] = useState<any>(null);
 
   const handleOpenNewConsultation = () => {
     const today = new Date();
@@ -204,6 +204,7 @@ export default function App() {
   useEffect(() => {
     if (selectedPatient) {
       fetchConsultations(selectedPatient.id);
+      fetchAnamnesis(selectedPatient.id);
     }
   }, [selectedPatient]);
 
@@ -265,6 +266,17 @@ export default function App() {
       .order('created_at', { ascending: false });
     if (!error && data) {
       setPatientConsultations(data);
+    }
+  };
+
+  const fetchAnamnesis = async (patientId: string) => {
+    const { data, error } = await supabase
+      .from('anamnesis')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+    if (!error && data) {
+      setPatientAnamnesis(data);
     }
   };
 
@@ -464,6 +476,16 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => {
+                supabase.auth.signOut();
+                setUser(null);
+                setStep('auth');
+              }}
+              className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-gray-400 hover:text-red-500 transition-colors"
+            >
+              <LogOut size={20} />
+            </button>
             <button
               onClick={() => setDarkMode(!darkMode)}
               className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-brand-olive dark:text-brand-gold"
