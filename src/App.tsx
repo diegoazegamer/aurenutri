@@ -2243,7 +2243,7 @@ export default function App() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">E-mail</label>
-                      <input name="email" required type="email" placeholder="exemplo@email.com" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                      <input name="email" type="email" placeholder="exemplo@email.com (Opcional)" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">WhatsApp</label>
@@ -2255,8 +2255,8 @@ export default function App() {
                     </div>
                     <div className="space-y-2">
                       <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Objetivo</label>
-                      <select name="objective" required className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
-                        <option value="">Selecione o objetivo</option>
+                      <select name="objective" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
+                        <option value="">Selecione o objetivo (Opcional)</option>
                         <option value="Emagrecimento">Emagrecimento</option>
                         <option value="Hipertrofia">Hipertrofia</option>
                         <option value="Manutenção">Manutenção</option>
