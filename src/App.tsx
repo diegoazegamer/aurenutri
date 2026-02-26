@@ -80,6 +80,9 @@ export default function App() {
   const [showConsultationDetailsModal, setShowConsultationDetailsModal] = useState<any>(null);
   const [patientConsultations, setPatientConsultations] = useState<any[]>([]);
 
+  // Antropometria states
+  const [showAnthropometryModal, setShowAnthropometryModal] = useState(false);
+
   // Anamnese Geral states
   const [showNewAnamnesisModal, setShowNewAnamnesisModal] = useState(false);
   const [patientAnamnesis, setPatientAnamnesis] = useState<any[]>([
@@ -1144,15 +1147,15 @@ export default function App() {
                           </div>
                           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                             {[
-                              { label: 'registrar consulta', icon: <Check size={20} />, color: 'bg-[#1DE9B6]' },
-                              { label: 'agendar paciente', icon: <Calendar size={20} />, color: 'bg-[#1DE9B6]' },
-                              { label: 'adicionar anamnese', icon: <MessageCircle size={20} />, color: 'bg-[#1DE9B6]' },
-                              { label: 'adicionar antropometria', icon: <User size={20} />, color: 'bg-[#1DE9B6]' },
-                              { label: 'adicionar planejamento', icon: <Utensils size={20} />, color: 'bg-[#1DE9B6]' },
-                              { label: 'adicionar orientação', icon: <FileText size={20} />, color: 'bg-[#1DE9B6]' },
-                              { label: 'adicionar manipulados', icon: <Pill size={20} />, color: 'bg-[#1DE9B6]' },
+                              { label: 'registrar consulta', icon: <Check size={20} />, color: 'bg-[#1DE9B6]', action: handleOpenNewConsultation },
+                              { label: 'agendar paciente', icon: <Calendar size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
+                              { label: 'adicionar anamnese', icon: <MessageCircle size={20} />, color: 'bg-[#1DE9B6]', action: () => setShowNewAnamnesisModal(true) },
+                              { label: 'adicionar antropometria', icon: <User size={20} />, color: 'bg-[#1DE9B6]', action: () => setShowAnthropometryModal(true) },
+                              { label: 'adicionar planejamento', icon: <Utensils size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
+                              { label: 'adicionar orientação', icon: <FileText size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
+                              { label: 'adicionar manipulados', icon: <Pill size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
                             ].map((action, i) => (
-                              <button key={i} className={`${action.color} hover:brightness-95 transition-all p-4 rounded-xl flex flex-col items-center justify-center text-center gap-2 group`}>
+                              <button key={i} onClick={action.action} className={`${action.color} hover:brightness-95 transition-all p-4 rounded-xl flex flex-col items-center justify-center text-center gap-2 group`}>
                                 <div className="text-white drop-shadow-sm group-hover:scale-110 transition-transform">
                                   {action.icon}
                                 </div>
@@ -2433,6 +2436,163 @@ export default function App() {
                     <Check size={18} />
                   </button>
                 </form>
+              </motion.div>
+            </div>
+          )}
+          {/* Antropometria Modal */}
+          {showAnthropometryModal && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#f5f5f0] dark:bg-dark-bg p-0 md:p-6 overflow-hidden">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="w-full h-full flex flex-col bg-[#f5f5f0] dark:bg-dark-bg"
+              >
+                {/* Header Navbar */}
+                <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-white/10 p-6 flex justify-between items-center shadow-sm z-10">
+                  <div>
+                    <h2 className="text-2xl font-bold font-serif text-brand-ink dark:text-dark-ink">Avaliação antropométrica</h2>
+                    <p className="text-sm text-gray-500 mt-1">Data da avaliação: {new Date().toLocaleDateString('pt-BR')}, Paciente: {selectedPatient?.name || 'Juliana Casemiro'}, Idade: 41 anos</p>
+                  </div>
+                  <button
+                    onClick={() => setShowAnthropometryModal(false)}
+                    className="text-base font-bold text-brand-ink dark:text-dark-ink hover:text-brand-olive transition-colors flex items-center gap-2"
+                  >
+                    Retornar ao menu do paciente
+                  </button>
+                </div>
+
+                {/* Main Content Area */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                  <div className="max-w-6xl mx-auto space-y-6">
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <Activity size={18} /> ver evolução
+                      </button>
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <FileText size={18} /> ver anamnese
+                      </button>
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <Calendar size={18} /> avaliações anteriores
+                      </button>
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <Edit2 size={18} /> editar data
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                      {/* Left Column: Inputs */}
+                      <div className="lg:col-span-2 space-y-6">
+                        {/* Basic Data */}
+                        <div className="bg-white dark:bg-dark-card p-6 border border-gray-200 dark:border-white/10 rounded-2xl">
+                          <div className="flex justify-between items-center mb-4">
+                            <div>
+                              <h4 className="font-bold text-brand-ink dark:text-dark-ink">Dados antropométricos básicos</h4>
+                              <p className="text-sm text-gray-500 mt-1">Paciente acamado? <span className="text-red-500 font-bold cursor-pointer">Clique aqui</span> para estimar o peso.</p>
+                            </div>
+                            <ChevronRight className="rotate-[-90deg] text-gray-400" />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Peso (Kg)</label>
+                              <input type="text" defaultValue="65" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Altura (cm)</label>
+                              <input type="text" defaultValue="185" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Altura sentado (cm)</label>
+                              <input type="text" defaultValue="150" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Altura do joelho (cm)</label>
+                              <input type="text" defaultValue="60" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Accordions */}
+                        {['Dobras cutâneas (mm)', 'Circunferências corporais (cm)', 'Diâmetro ósseo (cm)'].map((title, i) => (
+                          <div key={i} className="flex justify-between items-center bg-transparent border-b border-gray-300 dark:border-white/10 pb-4">
+                            <h4 className="font-bold text-brand-ink dark:text-dark-ink">{title}</h4>
+                            <ChevronRight className="rotate-90 text-gray-400" />
+                          </div>
+                        ))}
+
+                        {/* Bioimpedance */}
+                        <div className="bg-transparent border-t border-gray-300 dark:border-white/10 pt-4 pb-4">
+                          <div className="flex justify-between items-center mb-4">
+                            <div>
+                              <h4 className="font-bold text-brand-ink dark:text-dark-ink">Balança de bioimpedância</h4>
+                              <p className="text-sm text-gray-500 mt-1">Insira os dados da sua balança diretamente aqui.</p>
+                            </div>
+                            <ChevronRight className="rotate-[-90deg] text-gray-400" />
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            {['% de Gordura', 'Massa Gorda', '% de Massa Muscular', 'Massa Muscular', 'Massa Livre de Gordura', 'Peso Ósseo', 'Gordura Visceral', 'Água Corporal'].map((label, i) => (
+                              <input key={i} type="text" placeholder={label} className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm text-brand-ink dark:text-dark-ink placeholder-gray-400 focus:border-[#1DE9B6] outline-none" />
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right Column: Analytical Results */}
+                      <div className="bg-gray-50/50 dark:bg-white/5 p-6 border border-gray-200 dark:border-white/10 rounded-2xl w-full">
+                        <div className="flex justify-between items-center mb-6">
+                          <h4 className="font-bold text-brand-ink dark:text-dark-ink flex items-center gap-2">
+                            Resultados analíticos <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span>
+                          </h4>
+                          <button type="button" className="text-sm font-bold text-brand-ink dark:text-dark-ink hover:underline">Ver gráficos</button>
+                        </div>
+
+                        {/* First Table */}
+                        <div className="space-y-4 mb-8">
+                          <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
+                          <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 cursor-default">
+                            {[
+                              ['Peso atual', '65 Kg'],
+                              ['Altura atual', '185 cm'],
+                              ['Índice de Massa Corporal', '19.0 Kg/m²'],
+                              ['Classificação do IMC', 'Eutrófico'],
+                              ['Faixa de peso ideal', '63.3 a 85.2Kg'],
+                              ['Relação da Cintura/Quadril (RCQ)', '-'],
+                              ['Risco Metabólico por RCQ', '-'],
+                              ['CMB (cm) (Escolha o lado)', '-'],
+                              ['Classificação CMB', '-']
+                            ].map((row, i) => (
+                              <div key={i} className="flex justify-between items-center p-3 text-sm bg-white dark:bg-dark-card">
+                                <span className={row[0] === 'Faixa de peso ideal' ? 'text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{row[0]}</span>
+                                <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Second Table */}
+                        <div className="space-y-4">
+                          <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por dobras e diâmetro ósseo</h5>
+                          <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                            {[
+                              ['Percentual de Gordura (Brozek, 1963)', '-'],
+                              ['Percentual Ideal', '-'],
+                              ['Classif. do % GC (Editar)', '-'],
+                              ['Peso de gordura', '-']
+                            ].map((row, i) => (
+                              <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
+                                <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             </div>
           )}
