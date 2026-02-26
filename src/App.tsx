@@ -80,6 +80,13 @@ export default function App() {
   const [showConsultationDetailsModal, setShowConsultationDetailsModal] = useState<any>(null);
   const [patientConsultations, setPatientConsultations] = useState<any[]>([]);
 
+  // Anamnese Geral states
+  const [showNewAnamnesisModal, setShowNewAnamnesisModal] = useState(false);
+  const [patientAnamnesis, setPatientAnamnesis] = useState<any[]>([
+    { id: 1, date: '10/12/2025', title: 'Primeira consulta - Geral' },
+    { id: 2, date: '15/01/2026', title: 'Acompanhamento rotina alimentar' },
+  ]);
+
   const handleOpenNewConsultation = () => {
     const today = new Date();
     const formatted = today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -2166,6 +2173,128 @@ export default function App() {
                     registrar nova consulta
                   </button>
                 </form>
+              </motion.div>
+            </div>
+          )}
+
+          {showNewAnamnesisModal && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center p-0 md:p-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowNewAnamnesisModal(false)}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white dark:bg-dark-card w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] md:rounded-[40px] shadow-2xl relative z-10 flex flex-col overflow-hidden"
+              >
+                {/* Modal Header */}
+                <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => setShowNewAnamnesisModal(false)} className="p-2 text-gray-400 hover:text-brand-olive transition-colors hidden md:block">
+                      <ArrowLeft size={24} />
+                    </button>
+                    <div>
+                      <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Anamnese do paciente</h3>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowNewAnamnesisModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-[#f5f5f0] dark:bg-dark-bg">
+                  <div className="bg-white dark:bg-dark-card border-none md:border md:border-gray-100 dark:border-white/5 rounded-none md:rounded-3xl p-0 md:p-6 space-y-6">
+                    <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-4">
+                      <h4 className="font-bold text-brand-ink dark:text-dark-ink">Anamnese em texto</h4>
+                      <ChevronRight className="rotate-90 text-gray-400" size={20} />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm">
+                        importar modelo favorito
+                      </button>
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm">
+                        importar respostas da pré-consulta
+                      </button>
+                    </div>
+
+                    <input
+                      type="text"
+                      placeholder="Título da anamnese (exemplo: Histórico familiar, histórico patológico, rotina alimentar, etc.)"
+                      className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-brand-ink dark:text-dark-ink placeholder-gray-400"
+                    />
+
+                    <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-dark-card">
+                      {/* Rich Text Toolbar Mock */}
+                      <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-white/10 p-2 flex flex-wrap gap-1 items-center text-gray-500">
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded" title="Desfazer">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13" /></svg>
+                        </button>
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded" title="Refazer">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7" /></svg>
+                        </button>
+                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                        <button className="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-1">14px <ChevronRight className="rotate-90 inline" size={12} /></button>
+                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded font-bold font-serif w-6 h-6 flex items-center justify-center">B</button>
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded italic font-serif w-6 h-6 flex items-center justify-center">I</button>
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded underline font-serif w-6 h-6 flex items-center justify-center">U</button>
+                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-1 font-serif px-1">A <ChevronRight className="rotate-90 inline" size={12} /></button>
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-0.5">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z" /><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" /><path d="M2 2l7.586 7.586" /><circle cx="11" cy="11" r="2" /></svg>
+                          <ChevronRight className="rotate-90 inline" size={12} />
+                        </button>
+                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="3" y2="12" /><line x1="17" y1="18" x2="3" y2="18" /></svg>
+                        </button>
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="12" x2="3" y2="12" /><line x1="21" y1="18" x2="3" y2="18" /></svg>
+                        </button>
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="9" y2="12" /><line x1="17" y1="18" x2="3" y2="18" /></svg>
+                        </button>
+                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-0.5">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
+                          <ChevronRight className="rotate-90 inline" size={12} />
+                        </button>
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></svg>
+                        </button>
+                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded italic font-serif">
+                          T<span className="text-[10px] ml-0.5 align-sub">x</span>
+                        </button>
+                      </div>
+                      <textarea
+                        className="w-full h-48 md:h-64 p-4 outline-none resize-none bg-transparent text-brand-ink dark:text-dark-ink text-sm leading-relaxed"
+                        defaultValue=""
+                      />
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        // Mock saving
+                        setPatientAnamnesis(prev => [
+                          { id: Date.now(), date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' }), title: 'Nova Anamnese Salva' },
+                          ...prev
+                        ]);
+                        setShowNewAnamnesisModal(false);
+                      }}
+                      className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all uppercase tracking-widest text-sm"
+                    >
+                      salvar alterações
+                    </button>
+                  </div>
+                </div>
               </motion.div>
             </div>
           )}
