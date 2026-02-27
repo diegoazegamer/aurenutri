@@ -2490,9 +2490,12 @@ export default function App() {
                             .eq('id', editingAnamnesisId)
                             .select();
 
-                          if (!error && data && data.length > 0) {
+                          if (error) {
+                            alert('Erro ao atualizar: ' + error.message);
+                          } else if (data && data.length > 0) {
                             setPatientAnamnesis(prev => prev.map(a => a.id === editingAnamnesisId ? data[0] : a));
                             setShowNewAnamnesisModal(false);
+                            setActiveSubTab('Anamnese geral');
                           }
                         } else {
                           const { data, error } = await supabase
@@ -2500,9 +2503,12 @@ export default function App() {
                             .insert([anamneseData])
                             .select();
 
-                          if (!error && data && data.length > 0) {
+                          if (error) {
+                            alert('Erro ao salvar anamnese: ' + error.message + '\n\nPor favor, rode o script SQL para criar a tabela "anamnesis" no Supabase.');
+                          } else if (data && data.length > 0) {
                             setPatientAnamnesis(prev => [data[0], ...prev]);
                             setShowNewAnamnesisModal(false);
+                            setActiveSubTab('Anamnese geral');
                           }
                         }
                       }}

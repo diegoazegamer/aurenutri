@@ -101,3 +101,26 @@ CREATE POLICY "Doctors can manage their patients anthropometries" ON public.anth
             AND patients.doctor_id = auth.uid()
         )
     );
+
+-- 7. Anamnesis Table
+CREATE TABLE IF NOT EXISTS public.anamnesis (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    patient_id UUID REFERENCES public.patients(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    title TEXT,
+    content TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.anamnesis ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Doctors can manage their patients anamnesis" ON public.anamnesis;
+CREATE POLICY "Doctors can manage their patients anamnesis" ON public.anamnesis
+    FOR ALL
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.patients
+            WHERE patients.id = anamnesis.patient_id
+            AND patients.doctor_id = auth.uid()
+        )
+    );
