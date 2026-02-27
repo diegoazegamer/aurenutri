@@ -2849,18 +2849,29 @@ export default function App() {
                                 <div className="pt-4 mt-2 grid grid-cols-2 gap-4 transition-all">
                                   {title === 'Balança de bioimpedância' && (
                                     <>
-                                      {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal', 'Água Corporal Total'].map((label, j) => (
-                                        <div key={j}>
-                                          <label className="text-xs font-bold text-gray-400 mb-1 block">{label}</label>
-                                          <input
-                                            type="text"
-                                            placeholder={label}
-                                            value={bioimpedance[label] || ''}
-                                            onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
-                                            className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
-                                          />
-                                        </div>
-                                      ))}
+                                      {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal', 'Água Corporal Total'].map((label, j) => {
+                                        const isACT = label === 'Água Corporal Total';
+                                        const computedACT = isACT ? calculateTotalBodyWater(
+                                          anthropometryPeso,
+                                          selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura,
+                                          calculateAge(selectedPatient?.birth_date),
+                                          selectedPatient?.gender
+                                        ) : '';
+
+                                        return (
+                                          <div key={j}>
+                                            <label className="text-xs font-bold text-gray-400 mb-1 block">{label} {isACT && '(L)'}</label>
+                                            <input
+                                              type="text"
+                                              placeholder={label}
+                                              value={isACT ? (computedACT !== '-' ? computedACT.replace(' L', '') : '') : bioimpedance[label] || ''}
+                                              readOnly={isACT}
+                                              onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
+                                              className={`w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none ${isACT ? 'bg-gray-100 dark:bg-white/10 cursor-not-allowed opacity-70' : ''}`}
+                                            />
+                                          </div>
+                                        );
+                                      })}
                                     </>
                                   )}
                                   {title === 'Evolução fotográfica' && (
@@ -2949,7 +2960,7 @@ export default function App() {
                                 ['Classif. do % GC (Editar)', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
                                 ['Percentual de Massa Muscular', bioimpedance['% Musculo'] ? `${bioimpedance['% Musculo']}%` : '-'],
                                 ['Massa Muscular', '-'],
-                                ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                                ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
                                 ['Peso Ósseo', '-'],
                                 ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
                                 ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
