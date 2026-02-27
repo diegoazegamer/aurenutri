@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { supabase } from './lib/supabase';
-import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange } from './utils/anthropometrics';
+import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange, getIdealBodyFatRange, classifyBodyFat, calculateFatMass, calculateFatFreeMass } from './utils/anthropometrics';
 
 interface Patient {
   id: number;
@@ -2942,17 +2942,17 @@ export default function App() {
                             <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por bioimpedância</h5>
                             <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
                               {[
-                                ['Percentual de Gordura', '-'],
-                                ['Percentual Ideal', '-'],
-                                ['Classif. do % GC (Editar)', '-'],
-                                ['Percentual de Massa Muscular', '-'],
+                                ['Percentual de Gordura', bioimpedance['% Gordura'] ? `${bioimpedance['% Gordura']}%` : '-'],
+                                ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                                ['Classif. do % GC (Editar)', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                                ['Percentual de Massa Muscular', bioimpedance['% Musculo'] ? `${bioimpedance['% Musculo']}%` : '-'],
                                 ['Massa Muscular', '-'],
                                 ['Água Corporal Total', '-'],
                                 ['Peso Ósseo', '-'],
-                                ['Massa de gordura', '-'],
-                                ['Massa Livre de Gordura', '-'],
-                                ['Índice de Gordura Visceral', '-'],
-                                ['Idade Metabólica', '-']
+                                ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
+                                ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
+                                ['Índice de Gordura Visceral', bioimpedance['Gordura Visceral'] || '-'],
+                                ['Idade Metabólica', bioimpedance['Idade Biologica'] ? `${bioimpedance['Idade Biologica']} anos` : '-']
                               ].map((row, i) => (
                                 <div key={i} className="flex justify-between items-center p-3 text-sm">
                                   <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
