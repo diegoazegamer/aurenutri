@@ -2998,20 +2998,25 @@ export default function App() {
                                 .update(anthropometryData)
                                 .eq('id', editingAnthropometryId)
                                 .select();
-                              if (!error && data && data.length > 0) {
+                              if (error) {
+                                alert('Erro ao atualizar: ' + error.message);
+                              } else if (data && data.length > 0) {
                                 setPatientAnthropometries(prev => prev.map(a => a.id === editingAnthropometryId ? data[0] : a));
+                                setShowAnthropometryModal(false);
                               }
                             } else {
                               const { data, error } = await supabase
                                 .from('anthropometries')
                                 .insert([anthropometryData])
                                 .select();
-                              if (!error && data && data.length > 0) {
+                              if (error) {
+                                alert('Erro ao salvar antropometria: ' + error.message + '\n\nPor favor, rode o script SQL para criar a tabela "anthropometries" no Supabase.');
+                              } else if (data && data.length > 0) {
                                 setPatientAnthropometries(prev => [data[0], ...prev]);
                                 setActiveSubTab('Antropometria geral');
+                                setShowAnthropometryModal(false);
                               }
                             }
-                            setShowAnthropometryModal(false);
                           }}
                         >
                           salvar alterações

@@ -74,3 +74,26 @@ CREATE POLICY "Doctors can manage their patients requests" ON public.requests
             AND patients.doctor_id = auth.uid()
         )
     );
+
+-- 6. Anthropometries Table
+CREATE TABLE IF NOT EXISTS public.anthropometries (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    patient_id UUID REFERENCES public.patients(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    peso TEXT,
+    altura TEXT,
+    bioimpedance JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.anthropometries ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Doctors can manage their patients anthropometries" ON public.anthropometries
+    FOR ALL
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.patients
+            WHERE patients.id = anthropometries.patient_id
+            AND patients.doctor_id = auth.uid()
+        )
+    );
