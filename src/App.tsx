@@ -2832,7 +2832,7 @@ export default function App() {
                           </div>
 
                           {/* Accordions */}
-                          {['Dobras cutâneas (mm)', 'Circunferências corporais (cm)', 'Diâmetro ósseo (cm)', 'Balança de bioimpedância', 'Evolução fotográfica'].map((title, i) => (
+                          {['Balança de bioimpedância', 'Dobras cutâneas (mm)', 'Circunferências corporais (cm)', 'Diâmetro ósseo (cm)', 'Evolução fotográfica'].map((title, i) => (
                             <div key={i} className="border-b border-gray-300 dark:border-white/10 last:border-0 pb-4">
                               <div
                                 className="flex justify-between items-center bg-transparent cursor-pointer"
@@ -2850,14 +2850,16 @@ export default function App() {
                                   {title === 'Balança de bioimpedância' && (
                                     <>
                                       {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal'].map((label, j) => (
-                                        <input
-                                          key={j}
-                                          type="text"
-                                          placeholder={label}
-                                          value={bioimpedance[label] || ''}
-                                          onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
-                                          className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 text-sm text-brand-ink dark:text-dark-ink placeholder-gray-400 focus:border-[#1DE9B6] outline-none"
-                                        />
+                                        <div key={j}>
+                                          <label className="text-xs font-bold text-gray-400 mb-1 block">{label}</label>
+                                          <input
+                                            type="text"
+                                            placeholder={label}
+                                            value={bioimpedance[label] || ''}
+                                            onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
+                                            className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
+                                          />
+                                        </div>
                                       ))}
                                     </>
                                   )}
