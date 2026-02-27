@@ -61,7 +61,7 @@ export default function App() {
 
   // Doctor Dashboard States
   const [activeTab, setActiveTab] = useState<'start' | 'patients' | 'requests' | 'appointments' | 'patient-details'>('start');
-  const [activeSubTab, setActiveSubTab] = useState('Acompanhamento');
+  const [activeSubTab, setActiveSubTab] = useState('Perfil do paciente');
   const [searchQuery, setSearchQuery] = useState('');
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showPatientModal, setShowPatientModal] = useState(false);
@@ -1001,17 +1001,17 @@ export default function App() {
                   <div className="bg-white dark:bg-dark-card rounded-[32px] shadow-sm border border-white/20 dark:border-white/5 overflow-hidden">
                     <div className="p-2 space-y-1">
                       {[
-                        { label: 'Acompanhamento', active: true },
                         { label: 'Perfil do paciente' },
+                        { label: 'Acompanhamento' },
                         { label: 'Histórico de consultas' },
                         { label: 'Anamnese geral' },
-                        { label: 'Questionários de saúde' },
-                        { label: 'Exames laboratoriais' },
-                        { label: 'Evolução fotográfica' },
                         { label: 'Antropometria geral' },
-                        { label: 'Acompanhamento gestacional' },
+                        { label: 'Evolução fotográfica' },
+                        { label: 'Exames laboratoriais' },
                         { label: 'Cálculo energético' },
                         { label: 'Planejamento alimentar' },
+                        { label: 'Questionários de saúde' },
+                        { label: 'Acompanhamento gestacional' },
                         { label: 'Suplementos e produtos' },
                         { label: 'Prescrição de metas' },
                         { label: 'Prescrição de manipulados' },
