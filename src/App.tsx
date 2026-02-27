@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { supabase } from './lib/supabase';
+import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange } from './utils/anthropometrics';
 
 interface Patient {
   id: number;
@@ -2895,9 +2896,9 @@ export default function App() {
                               {[
                                 ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
                                 ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
-                                ['Índice de Massa Corporal', '-'],
-                                ['Classificação do IMC', '-'],
-                                ['Faixa de peso ideal', '-'],
+                                ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) || '-'],
+                                ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
+                                ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
                                 ['Relação da Cintura/Quadril (RCQ)', '-'],
                                 ['Risco Metabólico por RCQ', '-'],
                                 ['CMB (cm) (Escolha o lado)', '-'],
