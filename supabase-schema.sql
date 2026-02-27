@@ -51,10 +51,12 @@ ALTER TABLE public.consultations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.requests ENABLE ROW LEVEL SECURITY;
 
 -- 5. Policies
+DROP POLICY IF EXISTS "Doctors can manage their own patients" ON public.patients;
 CREATE POLICY "Doctors can manage their own patients" ON public.patients
     FOR ALL
     USING (auth.uid() = doctor_id);
 
+DROP POLICY IF EXISTS "Doctors can manage their patients consultations" ON public.consultations;
 CREATE POLICY "Doctors can manage their patients consultations" ON public.consultations
     FOR ALL
     USING (
@@ -65,6 +67,7 @@ CREATE POLICY "Doctors can manage their patients consultations" ON public.consul
         )
     );
 
+DROP POLICY IF EXISTS "Doctors can manage their patients requests" ON public.requests;
 CREATE POLICY "Doctors can manage their patients requests" ON public.requests
     FOR ALL
     USING (
@@ -88,6 +91,7 @@ CREATE TABLE IF NOT EXISTS public.anthropometries (
 
 ALTER TABLE public.anthropometries ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Doctors can manage their patients anthropometries" ON public.anthropometries;
 CREATE POLICY "Doctors can manage their patients anthropometries" ON public.anthropometries
     FOR ALL
     USING (
