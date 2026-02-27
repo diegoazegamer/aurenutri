@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS public.patients (
     activity_level TEXT,
     dietary_restrictions JSONB,
     status TEXT DEFAULT 'Ativo',
+    photo_url TEXT,
+    has_accessed_app BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 

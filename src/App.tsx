@@ -29,13 +29,15 @@ interface Patient {
   objective?: string;
   activity_level?: string;
   dietary_restrictions?: string;
+  photo_url?: string;
+  has_accessed_app?: boolean;
 }
 
 const DIETARY_OPTIONS = ['Sem Glúten', 'Vegano', 'Sem Lactose', 'Sem Açúcar', 'Vegetariano', 'Low Carb'];
 
 export default function App() {
   const [user, setUser] = useState<Patient | null>(null);
-  const [step, setStep] = useState<'auth' | 'onboarding' | 'health' | 'dashboard' | 'hydration' | 'doctor-dashboard'>(
+  const [step, setStep] = useState<'auth' | 'onboarding' | 'health' | 'dashboard' | 'hydration' | 'doctor-dashboard' | 'patient-profile'>(
     (localStorage.getItem('app_step') as any) || 'auth'
   );
   const [isLogin, setIsLogin] = useState(true);
@@ -692,7 +694,11 @@ export default function App() {
           ].map((item, i) => (
             <button
               key={i}
-              className={`flex flex-col items-center gap-1 ${item.active ? 'text-green-500' : 'text-gray-400'}`}
+              onClick={() => {
+                if (item.label === 'Perfil') setStep('patient-profile');
+                if (item.label === 'Início') setStep('dashboard');
+              }}
+              className={`flex flex-col items-center gap-1 ${item.active ? 'text-green-500' : 'text-gray-400'} hover:text-green-500 transition-colors`}
             >
               {item.icon}
               <span className="text-xs font-bold uppercase tracking-tighter">{item.label}</span>
@@ -1150,11 +1156,11 @@ export default function App() {
                             <button className="text-sm font-bold text-brand-olive uppercase tracking-widest hover:underline">Editar</button>
                           </div>
                           <div className="bg-gray-50/50 dark:bg-white/5 p-8 rounded-[32px] border border-gray-100 dark:border-white/10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left">
-                            <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-200 dark:bg-white/10 shrink-0">
+                            <div className="w-40 h-40 rounded-full overflow-hidden bg-gray-200 dark:bg-white/10 shrink-0 border-4 border-white dark:border-dark-card shadow-lg relative cursor-pointer group">
                               <img
-                                src={`https://images.unsplash.com/photo-${selectedPatient.id === 1 ? '1494790108377-be9c29b29330' : '1507003211169-0a1dd7228f2d'}?auto=format&fit=crop&q=80&w=300&h=300`}
+                                src={selectedPatient.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedPatient.name)}&background=random`}
                                 alt={selectedPatient.name}
-                                className="w-full h-full object-cover grayscale"
+                                className="w-full h-full object-cover"
                               />
                             </div>
                             <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
@@ -1164,23 +1170,25 @@ export default function App() {
                               </div>
                               <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5">
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Data de nascimento</p>
-                                <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">15/11/1984</p>
+                                <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">{selectedPatient.birth_date || 'Não informada'}</p>
                               </div>
                               <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5">
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Telefone com DDD</p>
                                 <p className="text-sm font-bold text-brand-ink dark:text-dark-ink flex items-center justify-center md:justify-start gap-2">
-                                  (11) 96040-1325 <MessageCircle size={14} className="text-green-500" />
+                                  {selectedPatient.whatsapp || 'Não informado'} <MessageCircle size={14} className="text-green-500" />
                                 </p>
                               </div>
                               <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5 lg:col-span-2">
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Link do paciente <span className="text-gray-300">?</span></p>
                                 <p className="text-sm font-bold text-brand-olive truncate flex items-center gap-2">
-                                  https://paciente.me/479994364533 <Edit2 size={12} /> <LogOut className="rotate-180" size={12} />
+                                  https://paciente.me/{selectedPatient.id.toString().substring(0, 8)}... <Edit2 size={12} /> <LogOut className="rotate-180" size={12} />
                                 </p>
                               </div>
                               <div className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-gray-100 dark:border-white/5">
                                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-1">Já logou no aplicativo?</p>
-                                <p className="text-sm font-bold text-red-500">Não</p>
+                                <p className={`text-sm font-bold ${selectedPatient.has_accessed_app ? 'text-green-500' : 'text-red-500'}`}>
+                                  {selectedPatient.has_accessed_app ? 'Sim' : 'Não'}
+                                </p>
                               </div>
                             </div>
                           </div>
@@ -3318,6 +3326,196 @@ export default function App() {
             </div>
           )}
         </AnimatePresence>
+      </div>
+    );
+  }
+
+  if (step === 'patient-profile') {
+    return (
+      <div className="min-h-screen bg-[#f5f5f0] dark:bg-dark-bg transition-colors duration-300 pb-24">
+        {/* Header */}
+        <header className="p-6 max-w-4xl mx-auto w-full flex items-center justify-between">
+          <h2 className="serif text-3xl font-bold text-brand-ink dark:text-dark-ink">Meu Perfil</h2>
+          <button
+            onClick={() => setDarkMode(!darkMode)}
+            className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-brand-olive dark:text-brand-gold"
+          >
+            {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+          </button>
+        </header>
+
+        <main className="px-6 max-w-4xl mx-auto w-full space-y-6">
+          <div className="bg-white dark:bg-dark-card p-6 rounded-[32px] shadow-sm border border-white/20 dark:border-white/5 space-y-6">
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative group cursor-pointer" onClick={() => {
+                const url = prompt('Digite a URL da nova foto de perfil:');
+                if (url) {
+                  setUser(prev => prev ? { ...prev, photo_url: url } : prev);
+                  supabase.from('patients').update({ photo_url: url }).eq('id', user?.id).then();
+                }
+              }}>
+                <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-dark-card shadow-lg bg-gray-100 dark:bg-dark-card relative">
+                  <img
+                    src={user?.photo_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.name || 'User')}&background=random`}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="text-white mb-1" size={20} />
+                    <span className="text-[10px] text-white font-bold">MUDAR</span>
+                  </div>
+                </div>
+              </div>
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">{user?.name}</h3>
+                <p className="text-sm text-gray-500">{user?.email}</p>
+              </div>
+            </div>
+
+            <form className="space-y-4" onSubmit={async (e) => {
+              e.preventDefault();
+              setLoading(true);
+              try {
+                const updatedName = name || user?.name;
+                const updatedWhatsapp = whatsapp || user?.whatsapp;
+                const updatedBirthDate = birthDate || user?.birth_date;
+                const updatedCep = cep || user?.cep;
+                const updatedStreet = street || user?.street;
+                const updatedNumber = number || user?.number;
+
+                const { error } = await supabase.from('patients').update({
+                  name: updatedName,
+                  whatsapp: updatedWhatsapp,
+                  birth_date: updatedBirthDate,
+                  cep: updatedCep,
+                  street: updatedStreet,
+                  number: updatedNumber
+                }).eq('id', user?.id || '');
+                if (!error) {
+                  alert('Perfil atualizado com sucesso!');
+                  setUser(prev => prev ? {
+                    ...prev,
+                    name: updatedName as string,
+                    whatsapp: updatedWhatsapp as string,
+                    birth_date: updatedBirthDate,
+                    cep: updatedCep,
+                    street: updatedStreet,
+                    number: updatedNumber
+                  } : prev);
+                } else {
+                  alert('Erro ao atualizar perfil.');
+                }
+              } catch (err) {
+                console.error(err);
+                alert('Erro ao atualizar perfil.');
+              } finally {
+                setLoading(false);
+              }
+            }}>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Nome</label>
+                <input
+                  type="text"
+                  value={name || user?.name || ''}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">WhatsApp</label>
+                <input
+                  type="text"
+                  value={whatsapp || user?.whatsapp || ''}
+                  onChange={handleWhatsappChange}
+                  className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Data de Nascimento</label>
+                <input
+                  type="text"
+                  value={birthDate || user?.birth_date || ''}
+                  onChange={handleBirthDateChange}
+                  className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                  placeholder="DD/MM/AAAA"
+                />
+              </div>
+
+              <h4 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest mt-8 pt-4 border-t border-gray-100 dark:border-white/5">Endereço</h4>
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">CEP</label>
+                <input
+                  type="text"
+                  value={cep || user?.cep || ''}
+                  onChange={(e) => handleCepLookup(e.target.value)}
+                  className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="col-span-2 space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Rua</label>
+                  <input
+                    type="text"
+                    value={street || user?.street || ''}
+                    onChange={(e) => setStreet(e.target.value)}
+                    className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Número</label>
+                  <input
+                    type="text"
+                    value={number || user?.number || ''}
+                    onChange={(e) => setNumber(e.target.value)}
+                    className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-[#5A5A40] hover:bg-[#4a4a34] text-white font-bold py-4 rounded-2xl mt-4 transition-all flex items-center justify-center gap-2"
+              >
+                {loading ? 'Salvando...' : 'Salvar Alterações'}
+                {!loading && <Check size={18} />}
+              </button>
+            </form>
+            <button
+              onClick={() => {
+                supabase.auth.signOut();
+                setUser(null);
+                setStep('auth');
+              }}
+              className="w-full bg-red-50 dark:bg-red-500/10 hover:bg-red-100 dark:hover:bg-red-500/20 text-red-500 font-bold py-4 rounded-2xl flex justify-center items-center gap-2 transition-colors mt-4"
+            >
+              <LogOut size={20} />
+              Sair da Conta
+            </button>
+          </div>
+        </main>
+
+        {/* Bottom Navigation */}
+        <nav className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-dark-card/80 backdrop-blur-lg border-t border-gray-100 dark:border-white/5 px-8 py-4 flex justify-between items-center z-50">
+          {[
+            { icon: <Home size={24} />, label: 'Início', active: false },
+            { icon: <MessageCircle size={24} />, label: 'Chat', active: false },
+            { icon: <ClipboardList size={24} />, label: 'Plano', active: false },
+            { icon: <User size={24} />, label: 'Perfil', active: true },
+          ].map((item, i) => (
+            <button
+              key={i}
+              onClick={() => {
+                if (item.label === 'Perfil') setStep('patient-profile');
+                if (item.label === 'Início') setStep('dashboard');
+              }}
+              className={`flex flex-col items-center gap-1 ${item.active ? 'text-green-500' : 'text-gray-400'} hover:text-green-500 transition-colors`}
+            >
+              {item.icon}
+              <span className="text-xs font-bold uppercase tracking-tighter">{item.label}</span>
+            </button>
+          ))}
+        </nav>
       </div>
     );
   }
