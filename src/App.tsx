@@ -2909,7 +2909,7 @@ export default function App() {
                               {[
                                 ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
                                 ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
-                                ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) || '-'],
+                                ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) ? `${calculateIMC(anthropometryPeso, anthropometryAltura)} Kg/m²` : '-'],
                                 ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
                                 ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
                                 ['Relação da Cintura/Quadril (RCQ)', '-'],
