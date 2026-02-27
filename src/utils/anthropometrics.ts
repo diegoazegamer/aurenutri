@@ -88,3 +88,28 @@ export function calculateFatFreeMass(weight: string | number, fatMass: string): 
     if (!w || isNaN(fm)) return '-';
     return (w - fm).toFixed(2) + ' Kg';
 }
+
+export function calculateTotalBodyWater(
+    weight: string | number,
+    heightCm: string | number,
+    age: number | null,
+    gender: string | undefined
+): string {
+    if (!weight || !heightCm || !age || !gender) return '-';
+
+    const w = parseFloat(String(weight));
+    const h = parseFloat(String(heightCm));
+
+    if (isNaN(w) || isNaN(h)) return '-';
+
+    const isMale = gender.toLowerCase() === 'masculino' || gender.toLowerCase() === 'homem';
+
+    let act = 0;
+    if (isMale) {
+        act = 2.447 - (0.09516 * age) + (0.1074 * h) + (0.3362 * w);
+    } else {
+        act = -2.097 + (0.1069 * h) + (0.2466 * w);
+    }
+
+    return act.toFixed(2) + ' L';
+}

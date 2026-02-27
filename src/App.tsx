@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { supabase } from './lib/supabase';
-import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange, getIdealBodyFatRange, classifyBodyFat, calculateFatMass, calculateFatFreeMass } from './utils/anthropometrics';
+import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange, getIdealBodyFatRange, classifyBodyFat, calculateFatMass, calculateFatFreeMass, calculateTotalBodyWater } from './utils/anthropometrics';
 
 interface Patient {
   id: number;
@@ -2949,7 +2949,7 @@ export default function App() {
                                 ['Classif. do % GC (Editar)', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
                                 ['Percentual de Massa Muscular', bioimpedance['% Musculo'] ? `${bioimpedance['% Musculo']}%` : '-'],
                                 ['Massa Muscular', '-'],
-                                ['Água Corporal Total', '-'],
+                                ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
                                 ['Peso Ósseo', '-'],
                                 ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
                                 ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
