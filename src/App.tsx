@@ -2849,7 +2849,7 @@ export default function App() {
                                 <div className="pt-4 mt-2 grid grid-cols-2 gap-4 transition-all">
                                   {title === 'Balança de bioimpedância' && (
                                     <>
-                                      {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal'].map((label, j) => (
+                                      {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal', 'Água Corporal Total'].map((label, j) => (
                                         <div key={j}>
                                           <label className="text-xs font-bold text-gray-400 mb-1 block">{label}</label>
                                           <input
@@ -2997,6 +2997,7 @@ export default function App() {
                                 .select();
                               if (!error && data && data.length > 0) {
                                 setPatientAnthropometries(prev => [data[0], ...prev]);
+                                setActiveSubTab('Antropometria geral');
                               }
                             }
                             setShowAnthropometryModal(false);
