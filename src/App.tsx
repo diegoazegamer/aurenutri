@@ -2889,9 +2889,9 @@ export default function App() {
                           </div>
 
                           {/* First Table */}
-                          <div className="space-y-4 mb-8">
+                          <div className="space-y-4 mb-6">
                             <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
-                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 cursor-default">
+                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
                               {[
                                 ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
                                 ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
@@ -2903,7 +2903,7 @@ export default function App() {
                                 ['CMB (cm) (Escolha o lado)', '-'],
                                 ['Classificação CMB', '-']
                               ].map((row, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 text-sm bg-white dark:bg-dark-card">
+                                <div key={i} className="flex justify-between items-center p-3 text-sm">
                                   <span className={row[0] === 'Faixa de peso ideal' ? 'text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{row[0]}</span>
                                   <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
                                 </div>
@@ -2912,14 +2912,46 @@ export default function App() {
                           </div>
 
                           {/* Second Table */}
-                          <div className="space-y-4">
+                          <div className="space-y-4 mb-6">
                             <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por dobras e diâmetro ósseo</h5>
                             <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
                               {[
                                 ['Percentual de Gordura (Brozek, 1963)', '-'],
                                 ['Percentual Ideal', '-'],
+                                ['Classif. do % GC(Editar)', '-'],
+                                ['Peso de gordura', '-'],
+                                ['Peso ósseo (por diam. ósseo)', '-'],
+                                ['Massa Muscular', '-'],
+                                ['Peso residual', '-'],
+                                ['Massa Livre de Gordura', '-'],
+                                ['Somatório de Dobras', '-'],
+                                ['Densidade Corporal', '-'],
+                                ['Referência usada', 'Pollock 3, 1989']
+                              ].map((row, i) => (
+                                <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                  <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
+                                  <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Third Table */}
+                          <div className="space-y-4">
+                            <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por bioimpedância</h5>
+                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                              {[
+                                ['Percentual de Gordura', '-'],
+                                ['Percentual Ideal', '-'],
                                 ['Classif. do % GC (Editar)', '-'],
-                                ['Peso de gordura', '-']
+                                ['Percentual de Massa Muscular', '-'],
+                                ['Massa Muscular', '-'],
+                                ['Água Corporal Total', '-'],
+                                ['Peso Ósseo', '-'],
+                                ['Massa de gordura', '-'],
+                                ['Massa Livre de Gordura', '-'],
+                                ['Índice de Gordura Visceral', '-'],
+                                ['Idade Metabólica', '-']
                               ].map((row, i) => (
                                 <div key={i} className="flex justify-between items-center p-3 text-sm">
                                   <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
