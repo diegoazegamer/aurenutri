@@ -126,3 +126,26 @@ CREATE POLICY "Doctors can manage their patients anamnesis" ON public.anamnesis
             AND patients.doctor_id = auth.uid()
         )
     );
+
+-- 8. Prescriptions Table
+CREATE TABLE IF NOT EXISTS public.prescriptions (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    patient_id UUID REFERENCES public.patients(id) ON DELETE CASCADE,
+    date TEXT NOT NULL,
+    title TEXT,
+    content TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE public.prescriptions ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Doctors can manage their patients prescriptions" ON public.prescriptions;
+CREATE POLICY "Doctors can manage their patients prescriptions" ON public.prescriptions
+    FOR ALL
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.patients
+            WHERE patients.id = prescriptions.patient_id
+            AND patients.doctor_id = auth.uid()
+        )
+    );

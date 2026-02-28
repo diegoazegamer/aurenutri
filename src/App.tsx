@@ -105,6 +105,13 @@ export default function App() {
   const [viewAnamnesis, setViewAnamnesis] = useState<any>(null);
   const [editingAnamnesisId, setEditingAnamnesisId] = useState<number | null>(null);
 
+  // Receitas states
+  const [showPrescriptionListModal, setShowPrescriptionListModal] = useState(false);
+  const [showNewPrescriptionModal, setShowNewPrescriptionModal] = useState(false);
+  const [newPrescriptionTitle, setNewPrescriptionTitle] = useState('');
+  const [newPrescriptionContent, setNewPrescriptionContent] = useState('');
+  const [patientPrescriptions, setPatientPrescriptions] = useState<any[]>([]);
+
   const handleOpenNewConsultation = () => {
     const today = new Date();
     const formatted = today.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -214,6 +221,7 @@ export default function App() {
       fetchConsultations(selectedPatient.id);
       fetchAnamnesis(selectedPatient.id);
       fetchAnthropometries(selectedPatient.id);
+      fetchPrescriptions(selectedPatient.id);
     }
   }, [selectedPatient]);
 
@@ -298,6 +306,48 @@ export default function App() {
     if (!error && data) {
       setPatientAnthropometries(data);
     }
+  };
+
+  const fetchPrescriptions = async (patientId: string) => {
+    const { data, error } = await supabase
+      .from('prescriptions')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false });
+    if (!error && data) {
+      setPatientPrescriptions(data);
+    }
+  };
+
+  const handleSavePrescription = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedPatient || !newPrescriptionTitle || !newPrescriptionContent) return;
+
+    setLoading(true);
+    const today = new Date().toLocaleDateString('pt-BR');
+
+    const { data, error } = await supabase
+      .from('prescriptions')
+      .insert([
+        {
+          patient_id: selectedPatient.id,
+          date: today,
+          title: newPrescriptionTitle,
+          content: newPrescriptionContent
+        }
+      ])
+      .select();
+
+    if (!error && data) {
+      setPatientPrescriptions(prev => [data[0], ...prev]);
+      setShowNewNewPrescriptionModal(false);
+      setNewPrescriptionTitle('');
+      setNewPrescriptionContent('');
+      alert('Receita salva com sucesso!');
+    } else {
+      alert('Erro ao salvar receita.');
+    }
+    setLoading(false);
   };
 
   // Auth States
@@ -998,6 +1048,13 @@ export default function App() {
                 >
                   <ArrowLeft size={20} />
                 </button>
+                <div className="flex-1">
+                  <h3 className="serif text-3xl font-bold text-brand-ink dark:text-dark-ink">{selectedPatient.name}</h3>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">Paciente Selecionado</p>
+                  </div>
+                </div>
               </div>
 
               <div className="flex flex-col lg:flex-row gap-6 items-start">
@@ -1206,9 +1263,9 @@ export default function App() {
                               { label: 'agendar paciente', icon: <Calendar size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
                               { label: 'adicionar anamnese', icon: <MessageCircle size={20} />, color: 'bg-[#1DE9B6]', action: () => setShowNewAnamnesisModal(true) },
                               { label: 'adicionar antropometria', icon: <User size={20} />, color: 'bg-[#1DE9B6]', action: () => setShowAnthropometryModal(true) },
+                              { label: 'receitas', icon: <Pill size={20} />, color: 'bg-blue-500', action: () => setShowPrescriptionListModal(true) },
                               { label: 'adicionar planejamento', icon: <Utensils size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
                               { label: 'adicionar orientação', icon: <FileText size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
-                              { label: 'adicionar manipulados', icon: <Pill size={20} />, color: 'bg-[#1DE9B6]', action: () => { } },
                             ].map((action, i) => (
                               <button key={i} onClick={action.action} className={`${action.color} hover:brightness-95 transition-all p-4 rounded-xl flex flex-col items-center justify-center text-center gap-2 group`}>
                                 <div className="text-white drop-shadow-sm group-hover:scale-110 transition-transform">
@@ -2298,751 +2355,954 @@ export default function App() {
               </motion.div>
             </div>
           )}
-          {showNewConsultationModal && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+        </AnimatePresence>
+
+        {/* Prescription List Modal */}
+        <AnimatePresence>
+          {showPrescriptionListModal && selectedPatient && (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-0 md:p-6">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setShowNewConsultationModal(false)}
+                onClick={() => setShowPrescriptionListModal(false)}
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm"
               />
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+                className="bg-[#f5f5f0] dark:bg-dark-bg w-full max-w-2xl h-full md:h-auto md:max-h-[85vh] md:rounded-[40px] shadow-2xl relative z-10 overflow-hidden flex flex-col"
               >
-                <div className="p-8 text-center border-b border-gray-100 dark:border-white/5">
-                  <h3 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink mb-2">Você está realizando uma nova consulta?</h3>
-                  <p className="text-sm text-gray-500">Registre a consulta do seu paciente e tenha acesso as métricas completas do seu consultório.</p>
-                </div>
-
-                <form className="p-8 space-y-6" onSubmit={async (e) => {
-                  e.preventDefault();
-                  if (newConsultationDate && selectedPatient) {
-                    const newConsult = {
-                      patient_id: selectedPatient.id,
-                      date: newConsultationDate,
-                      notes: newConsultationNotes,
-                      planner: newConsultationPlanner
-                    };
-                    const { data, error } = await supabase.from('consultations').insert([newConsult]).select();
-                    if (!error && data) {
-                      setPatientConsultations(prev => [data[0], ...prev]);
-                    }
-                    setShowNewConsultationModal(false);
-                    setNewConsultationDate('');
-                    setNewConsultationNotes('');
-                    setNewConsultationPlanner(false);
-                  }
-                }}>
-                  <div className="space-y-4">
-                    <input
-                      required
-                      type="text"
-                      value={newConsultationDate}
-                      onChange={handleConsultationDateChange}
-                      placeholder="25/02/2026"
-                      className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center font-bold text-brand-ink dark:text-dark-ink"
-                    />
-                    <input
-                      type="text"
-                      value={newConsultationNotes}
-                      onChange={(e) => setNewConsultationNotes(e.target.value)}
-                      placeholder="Observação desta consulta"
-                      className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center text-sm text-gray-400"
-                    />
-                    <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 flex justify-between items-center">
-                      <span className="text-sm text-gray-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis">Criar uma tarefa da consulta no planner</span>
-                      <button
-                        type="button"
-                        onClick={() => setNewConsultationPlanner(!newConsultationPlanner)}
-                        className={`shrink-0 w-10 h-6 rounded-full p-1 transition-colors cursor-pointer ${newConsultationPlanner ? 'bg-gray-400' : 'bg-gray-200 dark:bg-white/10'}`}
-                      >
-                        <div className={`w-4 h-4 bg-white rounded-full transition-transform ${newConsultationPlanner ? 'translate-x-4' : ''}`} />
-                      </button>
+                <div className="bg-white dark:bg-dark-card p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5">
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => setShowPrescriptionListModal(false)} className="p-2 text-gray-400 hover:text-brand-olive transition-colors">
+                      <ArrowLeft size={24} />
+                    </button>
+                    <div>
+                      <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Receitas do Paciente</h3>
+                      <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{selectedPatient.name}</p>
                     </div>
                   </div>
-
-                  <button type="submit" className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-3.5 rounded-xl transition-all">
-                    registrar nova consulta
+                  <button
+                    onClick={() => {
+                      setShowPrescriptionListModal(false);
+                      setShowNewPrescriptionModal(true);
+                      setNewPrescriptionTitle('');
+                      setNewPrescriptionContent('');
+                    }}
+                    className="p-3 rounded-2xl bg-brand-olive text-white hover:bg-brand-olive/90 transition-all flex items-center gap-2 shadow-lg shadow-brand-olive/20"
+                  >
+                    <Plus size={20} />
+                    <span className="text-sm font-bold uppercase tracking-widest hidden sm:inline">Nova Receita</span>
                   </button>
-                </form>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                  {patientPrescriptions.length === 0 ? (
+                    <div className="bg-white dark:bg-dark-card p-12 rounded-[32px] text-center space-y-4 border border-white/20 dark:border-white/5">
+                      <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto text-gray-400">
+                        <Pill size={32} />
+                      </div>
+                      <p className="text-gray-500 font-medium italic">Nenhuma receita registrada para este paciente.</p>
+                    </div>
+                  ) : (
+                    patientPrescriptions.map((prescription) => (
+                      <div key={prescription.id} className="bg-white dark:bg-dark-card p-6 rounded-[32px] shadow-sm border border-white/20 dark:border-white/5 flex items-center justify-between group hover:border-brand-olive/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-brand-olive/10 flex items-center justify-center text-brand-olive text-xl">
+                            📄
+                          </div>
+                          <div>
+                            <h5 className="text-lg font-bold text-brand-ink dark:text-dark-ink">{prescription.title}</h5>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">{prescription.date}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button className="p-2 text-brand-olive hover:bg-brand-olive/10 rounded-xl transition-all">
+                            <Edit2 size={18} />
+                          </button>
+                          <button className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </motion.div>
             </div>
           )}
+        </AnimatePresence>
 
-          {showNewAnamnesisModal && (
+        {/* New Prescription Modal (Two Columns + Preview) */}
+        <AnimatePresence>
+          {showNewPrescriptionModal && selectedPatient && (
             <div className="fixed inset-0 z-[120] flex items-center justify-center p-0 md:p-6">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setShowNewAnamnesisModal(false)}
+                onClick={() => setShowNewPrescriptionModal(false)}
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm"
               />
               <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white dark:bg-dark-card w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] md:rounded-[40px] shadow-2xl relative z-10 flex flex-col overflow-hidden"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="bg-[#f5f5f0] dark:bg-dark-bg w-full max-w-6xl h-full md:h-[90vh] md:rounded-[40px] shadow-2xl relative z-10 overflow-hidden flex flex-col"
               >
-                {/* Modal Header */}
-                <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                <div className="bg-white dark:bg-dark-card p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5">
                   <div className="flex items-center gap-4">
-                    <button onClick={() => setShowNewAnamnesisModal(false)} className="p-2 text-gray-400 hover:text-brand-olive transition-colors hidden md:block">
+                    <button onClick={() => setShowNewPrescriptionModal(false)} className="p-2 text-gray-400 hover:text-brand-olive transition-colors">
                       <ArrowLeft size={24} />
                     </button>
-                    <div>
-                      <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Anamnese do paciente</h3>
-                    </div>
+                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Emitir Receita</h3>
                   </div>
-                  <button onClick={() => setShowNewAnamnesisModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
-                    <X size={24} />
-                  </button>
-                </div>
-
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-[#f5f5f0] dark:bg-dark-bg">
-                  <div className="bg-white dark:bg-dark-card border-none md:border md:border-gray-100 dark:border-white/5 rounded-none md:rounded-3xl p-0 md:p-6 space-y-6">
-                    <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-4">
-                      <h4 className="font-bold text-brand-ink dark:text-dark-ink">Anamnese em texto</h4>
-                      <ChevronRight className="rotate-90 text-gray-400" size={20} />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm">
-                        importar modelo favorito
-                      </button>
-                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm">
-                        importar respostas da pré-consulta
-                      </button>
-                    </div>
-
-                    <input
-                      type="text"
-                      value={newAnamnesisTitle}
-                      onChange={(e) => setNewAnamnesisTitle(e.target.value)}
-                      placeholder="Título da anamnese (exemplo: Histórico familiar, histórico patológico, rotina alimentar, etc.)"
-                      className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-brand-ink dark:text-dark-ink placeholder-gray-400"
-                    />
-
-                    <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-dark-card">
-                      {/* Rich Text Toolbar Mock */}
-                      <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-white/10 p-2 flex flex-wrap gap-1 items-center text-gray-500">
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded" title="Desfazer">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13" /></svg>
-                        </button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded" title="Refazer">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7" /></svg>
-                        </button>
-                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
-                        <button className="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-1">14px <ChevronRight className="rotate-90 inline" size={12} /></button>
-                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded font-bold font-serif w-6 h-6 flex items-center justify-center">B</button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded italic font-serif w-6 h-6 flex items-center justify-center">I</button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded underline font-serif w-6 h-6 flex items-center justify-center">U</button>
-                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-1 font-serif px-1">A <ChevronRight className="rotate-90 inline" size={12} /></button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-0.5">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z" /><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" /><path d="M2 2l7.586 7.586" /><circle cx="11" cy="11" r="2" /></svg>
-                          <ChevronRight className="rotate-90 inline" size={12} />
-                        </button>
-                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="3" y2="12" /><line x1="17" y1="18" x2="3" y2="18" /></svg>
-                        </button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="12" x2="3" y2="12" /><line x1="21" y1="18" x2="3" y2="18" /></svg>
-                        </button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="9" y2="12" /><line x1="17" y1="18" x2="3" y2="18" /></svg>
-                        </button>
-                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-0.5">
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
-                          <ChevronRight className="rotate-90 inline" size={12} />
-                        </button>
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></svg>
-                        </button>
-                        <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
-                        <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded italic font-serif">
-                          T<span className="text-[10px] ml-0.5 align-sub">x</span>
-                        </button>
-                      </div>
-                      <textarea
-                        value={newAnamnesisContent}
-                        onChange={(e) => setNewAnamnesisContent(e.target.value)}
-                        className="w-full h-48 md:h-64 p-4 outline-none resize-none bg-transparent text-brand-ink dark:text-dark-ink text-sm leading-relaxed"
-                        placeholder="Digite aqui o histórico da consulta..."
-                      />
-                    </div>
-
+                  <div className="flex items-center gap-3">
                     <button
-                      onClick={async () => {
-                        if (!newAnamnesisTitle.trim()) return;
-
-                        const anamneseData = {
-                          patient_id: selectedPatient.id,
-                          date: new Date().toISOString(),
-                          title: newAnamnesisTitle,
-                          content: newAnamnesisContent
-                        };
-
-                        if (editingAnamnesisId) {
-                          const { data, error } = await supabase
-                            .from('anamnesis')
-                            .update(anamneseData)
-                            .eq('id', editingAnamnesisId)
-                            .select();
-
-                          if (error) {
-                            alert('Erro ao atualizar: ' + error.message);
-                          } else if (data && data.length > 0) {
-                            setPatientAnamnesis(prev => prev.map(a => a.id === editingAnamnesisId ? data[0] : a));
-                            setShowNewAnamnesisModal(false);
-                            setActiveSubTab('Anamnese geral');
-                          }
-                        } else {
-                          const { data, error } = await supabase
-                            .from('anamnesis')
-                            .insert([anamneseData])
-                            .select();
-
-                          if (error) {
-                            alert('Erro ao salvar anamnese: ' + error.message + '\n\nPor favor, rode o script SQL para criar a tabela "anamnesis" no Supabase.');
-                          } else if (data && data.length > 0) {
-                            setPatientAnamnesis(prev => [data[0], ...prev]);
-                            setShowNewAnamnesisModal(false);
-                            setActiveSubTab('Anamnese geral');
-                          }
-                        }
-                      }}
-                      className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all uppercase tracking-widest text-sm"
+                      form="prescription-form"
+                      type="submit"
+                      disabled={loading}
+                      className="p-3 rounded-2xl bg-brand-olive text-white hover:bg-brand-olive/90 transition-all flex items-center gap-2 shadow-lg shadow-brand-olive/20 px-6"
                     >
-                      salvar alterações
+                      {loading ? 'Salvando...' : 'Salvar Receita'}
+                      {!loading && <Check size={20} />}
+                    </button>
+                    <button onClick={() => setShowNewPrescriptionModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+                      <X size={24} />
                     </button>
                   </div>
                 </div>
+
+                <div className="flex-1 overflow-hidden flex flex-col lg:flex-row">
+                  {/* Left Column: Editor */}
+                  <div className="w-full lg:w-1/2 p-8 overflow-y-auto border-r border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                    <form id="prescription-form" onSubmit={handleSavePrescription} className="space-y-6">
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Título da Receita</label>
+                        <input
+                          required
+                          type="text"
+                          value={newPrescriptionTitle}
+                          onChange={(e) => setNewPrescriptionTitle(e.target.value)}
+                          placeholder="Ex: Suplementação Matinal, Protocolo de Vitaminas..."
+                          className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-brand-olive/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                        />
+                      </div>
+                      <div className="space-y-2 flex-1">
+                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Conteúdo</label>
+                        <textarea
+                          required
+                          value={newPrescriptionContent}
+                          onChange={(e) => setNewPrescriptionContent(e.target.value)}
+                          placeholder="Digite os medicamentos, dosagens e orientações..."
+                          className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-brand-olive/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 min-h-[400px] resize-none"
+                        />
+                      </div>
+                    </form>
+                  </div>
+
+                  {/* Right Column: Real-time Preview (Matching Patient App Style) */}
+                  <div className="hidden lg:block lg:w-1/2 bg-[#f5f5f0] dark:bg-dark-bg p-8 overflow-y-auto">
+                    <div className="sticky top-0">
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-4 text-center">PRÉ-VISUALIZAÇÃO EM TEMPO REAL</p>
+
+                      <div className="bg-white dark:bg-dark-card rounded-[40px] shadow-xl border border-white/20 dark:border-white/5 overflow-hidden max-w-md mx-auto aspect-[1/1.414] transform scale-[0.95] origin-top">
+                        <div className="p-8 md:p-10 space-y-8">
+                          {/* Header */}
+                          <div className="flex justify-between items-start border-b-2 border-brand-olive/20 pb-6">
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-transparent flex items-center justify-center p-1">
+                                  <img src="/assets/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                                </div>
+                                <h1 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Dra. Aure</h1>
+                              </div>
+                              <div className="space-y-0.5">
+                                <p className="text-[10px] font-bold text-brand-ink dark:text-dark-ink">Paciente: <span className="font-medium text-gray-500">{selectedPatient.name}</span></p>
+                                <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Data: {new Date().toLocaleDateString('pt-BR')}</p>
+                              </div>
+                            </div>
+                            <div className="text-right text-[8px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                              Rua das Palmeiras, 123<br />
+                              São Paulo - SP<br />
+                              CRN 12345
+                            </div>
+                          </div>
+
+                          {/* Body */}
+                          <div className="space-y-6 min-h-[400px]">
+                            <h3 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink text-center underline decoration-brand-olive/20 underline-offset-4">
+                              {newPrescriptionTitle || 'Título da Receita'}
+                            </h3>
+
+                            <div className="whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300 leading-relaxed font-medium">
+                              {newPrescriptionContent || 'O conteúdo da receita aparecerá aqui conforme você digita...'}
+                            </div>
+                          </div>
+
+                          {/* Signature */}
+                          <div className="pt-10 flex flex-col items-center">
+                            <div className="w-32 border-b border-brand-ink/20 mb-2" />
+                            <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">Dra. Aure</p>
+                            <p className="text-[8px] text-gray-400 font-bold uppercase tracking-widest">Nutricionista Esportiva</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             </div>
           )}
+        </AnimatePresence>
 
-          {viewAnamnesis && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+        {showNewConsultationModal && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowNewConsultationModal(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+            >
+              <div className="p-8 text-center border-b border-gray-100 dark:border-white/5">
+                <h3 className="serif text-2xl font-bold text-brand-ink dark:text-dark-ink mb-2">Você está realizando uma nova consulta?</h3>
+                <p className="text-sm text-gray-500">Registre a consulta do seu paciente e tenha acesso as métricas completas do seu consultório.</p>
+              </div>
+
+              <form className="p-8 space-y-6" onSubmit={async (e) => {
+                e.preventDefault();
+                if (newConsultationDate && selectedPatient) {
+                  const newConsult = {
+                    patient_id: selectedPatient.id,
+                    date: newConsultationDate,
+                    notes: newConsultationNotes,
+                    planner: newConsultationPlanner
+                  };
+                  const { data, error } = await supabase.from('consultations').insert([newConsult]).select();
+                  if (!error && data) {
+                    setPatientConsultations(prev => [data[0], ...prev]);
+                  }
+                  setShowNewConsultationModal(false);
+                  setNewConsultationDate('');
+                  setNewConsultationNotes('');
+                  setNewConsultationPlanner(false);
+                }
+              }}>
+                <div className="space-y-4">
+                  <input
+                    required
+                    type="text"
+                    value={newConsultationDate}
+                    onChange={handleConsultationDateChange}
+                    placeholder="25/02/2026"
+                    className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center font-bold text-brand-ink dark:text-dark-ink"
+                  />
+                  <input
+                    type="text"
+                    value={newConsultationNotes}
+                    onChange={(e) => setNewConsultationNotes(e.target.value)}
+                    placeholder="Observação desta consulta"
+                    className="w-full bg-white dark:bg-dark-card border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-center text-sm text-gray-400"
+                  />
+                  <div className="bg-gray-50 dark:bg-white/5 rounded-xl p-4 flex justify-between items-center">
+                    <span className="text-sm text-gray-500 font-medium whitespace-nowrap overflow-hidden text-ellipsis">Criar uma tarefa da consulta no planner</span>
+                    <button
+                      type="button"
+                      onClick={() => setNewConsultationPlanner(!newConsultationPlanner)}
+                      className={`shrink-0 w-10 h-6 rounded-full p-1 transition-colors cursor-pointer ${newConsultationPlanner ? 'bg-gray-400' : 'bg-gray-200 dark:bg-white/10'}`}
+                    >
+                      <div className={`w-4 h-4 bg-white rounded-full transition-transform ${newConsultationPlanner ? 'translate-x-4' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+
+                <button type="submit" className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-3.5 rounded-xl transition-all">
+                  registrar nova consulta
+                </button>
+              </form>
+            </motion.div>
+          </div>
+        )}
+
+        {showNewAnamnesisModal && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-0 md:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowNewAnamnesisModal(false)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-dark-card w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] md:rounded-[40px] shadow-2xl relative z-10 flex flex-col overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                <div className="flex items-center gap-4">
+                  <button onClick={() => setShowNewAnamnesisModal(false)} className="p-2 text-gray-400 hover:text-brand-olive transition-colors hidden md:block">
+                    <ArrowLeft size={24} />
+                  </button>
+                  <div>
+                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Anamnese do paciente</h3>
+                  </div>
+                </div>
+                <button onClick={() => setShowNewAnamnesisModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-[#f5f5f0] dark:bg-dark-bg">
+                <div className="bg-white dark:bg-dark-card border-none md:border md:border-gray-100 dark:border-white/5 rounded-none md:rounded-3xl p-0 md:p-6 space-y-6">
+                  <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/5 pb-4">
+                    <h4 className="font-bold text-brand-ink dark:text-dark-ink">Anamnese em texto</h4>
+                    <ChevronRight className="rotate-90 text-gray-400" size={20} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm">
+                      importar modelo favorito
+                    </button>
+                    <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm">
+                      importar respostas da pré-consulta
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    value={newAnamnesisTitle}
+                    onChange={(e) => setNewAnamnesisTitle(e.target.value)}
+                    placeholder="Título da anamnese (exemplo: Histórico familiar, histórico patológico, rotina alimentar, etc.)"
+                    className="w-full bg-transparent border border-gray-200 dark:border-white/10 rounded-xl py-3 px-4 outline-none focus:border-[#1DE9B6] text-brand-ink dark:text-dark-ink placeholder-gray-400"
+                  />
+
+                  <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden bg-white dark:bg-dark-card">
+                    {/* Rich Text Toolbar Mock */}
+                    <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-white/10 p-2 flex flex-wrap gap-1 items-center text-gray-500">
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded" title="Desfazer">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 7v6h6" /><path d="M21 17a9 9 0 00-9-9 9 9 0 00-6 2.3L3 13" /></svg>
+                      </button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded" title="Refazer">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 7v6h-6" /><path d="M3 17a9 9 0 019-9 9 9 0 016 2.3l3 2.7" /></svg>
+                      </button>
+                      <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                      <button className="px-2 py-1 text-sm hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-1">14px <ChevronRight className="rotate-90 inline" size={12} /></button>
+                      <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded font-bold font-serif w-6 h-6 flex items-center justify-center">B</button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded italic font-serif w-6 h-6 flex items-center justify-center">I</button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded underline font-serif w-6 h-6 flex items-center justify-center">U</button>
+                      <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-1 font-serif px-1">A <ChevronRight className="rotate-90 inline" size={12} /></button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-0.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z" /><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" /><path d="M2 2l7.586 7.586" /><circle cx="11" cy="11" r="2" /></svg>
+                        <ChevronRight className="rotate-90 inline" size={12} />
+                      </button>
+                      <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="3" y2="12" /><line x1="17" y1="18" x2="3" y2="18" /></svg>
+                      </button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="21" y1="12" x2="3" y2="12" /><line x1="21" y1="18" x2="3" y2="18" /></svg>
+                      </button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" y1="6" x2="3" y2="6" /><line x1="15" y1="12" x2="9" y2="12" /><line x1="17" y1="18" x2="3" y2="18" /></svg>
+                      </button>
+                      <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded flex items-center gap-0.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="3" y1="9" x2="21" y2="9" /><line x1="9" y1="21" x2="9" y2="9" /></svg>
+                        <ChevronRight className="rotate-90 inline" size={12} />
+                      </button>
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><line x1="9" y1="9" x2="15" y2="15" /><line x1="15" y1="9" x2="9" y2="15" /></svg>
+                      </button>
+                      <div className="w-px h-6 bg-gray-200 dark:bg-white/10 mx-1" />
+                      <button className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded italic font-serif">
+                        T<span className="text-[10px] ml-0.5 align-sub">x</span>
+                      </button>
+                    </div>
+                    <textarea
+                      value={newAnamnesisContent}
+                      onChange={(e) => setNewAnamnesisContent(e.target.value)}
+                      className="w-full h-48 md:h-64 p-4 outline-none resize-none bg-transparent text-brand-ink dark:text-dark-ink text-sm leading-relaxed"
+                      placeholder="Digite aqui o histórico da consulta..."
+                    />
+                  </div>
+
+                  <button
+                    onClick={async () => {
+                      if (!newAnamnesisTitle.trim()) return;
+
+                      const anamneseData = {
+                        patient_id: selectedPatient.id,
+                        date: new Date().toISOString(),
+                        title: newAnamnesisTitle,
+                        content: newAnamnesisContent
+                      };
+
+                      if (editingAnamnesisId) {
+                        const { data, error } = await supabase
+                          .from('anamnesis')
+                          .update(anamneseData)
+                          .eq('id', editingAnamnesisId)
+                          .select();
+
+                        if (error) {
+                          alert('Erro ao atualizar: ' + error.message);
+                        } else if (data && data.length > 0) {
+                          setPatientAnamnesis(prev => prev.map(a => a.id === editingAnamnesisId ? data[0] : a));
+                          setShowNewAnamnesisModal(false);
+                          setActiveSubTab('Anamnese geral');
+                        }
+                      } else {
+                        const { data, error } = await supabase
+                          .from('anamnesis')
+                          .insert([anamneseData])
+                          .select();
+
+                        if (error) {
+                          alert('Erro ao salvar anamnese: ' + error.message + '\n\nPor favor, rode o script SQL para criar a tabela "anamnesis" no Supabase.');
+                        } else if (data && data.length > 0) {
+                          setPatientAnamnesis(prev => [data[0], ...prev]);
+                          setShowNewAnamnesisModal(false);
+                          setActiveSubTab('Anamnese geral');
+                        }
+                      }
+                    }}
+                    className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all uppercase tracking-widest text-sm"
+                  >
+                    salvar alterações
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {viewAnamnesis && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setViewAnamnesis(null)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-dark-card w-full max-w-2xl rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+            >
+              <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                <div>
+                  <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">{viewAnamnesis.title}</h3>
+                  <p className="text-sm text-gray-500">{new Date(viewAnamnesis.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) || viewAnamnesis.date}</p>
+                </div>
+                <button onClick={() => setViewAnamnesis(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-6 max-h-[70vh] overflow-y-auto">
+                <div className="whitespace-pre-wrap text-brand-ink dark:text-dark-ink">
+                  {viewAnamnesis.content || 'Nenhum conteúdo registrado.'}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {viewAnthropometry && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setViewAnthropometry(null)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-dark-card w-full max-w-2xl rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+            >
+              <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                <div>
+                  <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Antropometria</h3>
+                  <p className="text-sm text-gray-500">{new Date(viewAnthropometry.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) || viewAnthropometry.date}</p>
+                </div>
+                <button onClick={() => setViewAnthropometry(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                  <X size={24} />
+                </button>
+              </div>
+              <div className="p-6 max-h-[70vh] overflow-y-auto space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
+                    <p className="text-xs text-gray-400 font-bold mb-1">Peso</p>
+                    <p className="text-lg font-bold text-brand-ink dark:text-dark-ink">{viewAnthropometry.peso || '-'} Kg</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
+                    <p className="text-xs text-gray-400 font-bold mb-1">Altura</p>
+                    <p className="text-lg font-bold text-brand-ink dark:text-dark-ink">{viewAnthropometry.altura || '-'} cm</p>
+                  </div>
+                </div>
+
+                {viewAnthropometry.bioimpedance && Object.keys(viewAnthropometry.bioimpedance).length > 0 && (
+                  <div className="mt-6">
+                    <h4 className="font-bold text-brand-ink dark:text-dark-ink mb-4">Métricas de Bioimpedância</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {Object.entries(viewAnthropometry.bioimpedance).map(([key, value]) => (
+                        <div key={key} className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
+                          <p className="text-xs text-gray-400 font-bold mb-1">{key}</p>
+                          <p className="font-medium text-brand-ink dark:text-dark-ink">{String(value) || '-'}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {showConsultationDetailsModal && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowConsultationDetailsModal(null)}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+            >
+              <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
+                <div>
+                  <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Consulta</h3>
+                  <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-relaxed mt-1">
+                    {showConsultationDetailsModal.date}
+                  </p>
+                </div>
+                <button onClick={() => setShowConsultationDetailsModal(null)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+              <div className="p-8">
+                <h4 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-2">Anotações da consulta:</h4>
+                <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl text-sm text-gray-600 dark:text-gray-300 min-h-[100px]">
+                  {showConsultationDetailsModal.notes || 'Nenhuma anotação registrada.'}
+                </div>
+
+                {showConsultationDetailsModal.planner && (
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="px-3 py-1 bg-brand-olive/10 text-brand-olive rounded-full text-xs font-bold uppercase tracking-widest">
+                      Tarefa Criada
+                    </span>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )
+        }
+        {
+          showPatientModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onClick={() => setViewAnamnesis(null)}
+                onClick={() => setShowPatientModal(false)}
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm"
               />
               <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white dark:bg-dark-card w-full max-w-2xl rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+                className="bg-white dark:bg-dark-card w-full max-w-2xl rounded-[32px] p-8 shadow-2xl relative z-10 border border-white/20 dark:border-white/5 overflow-y-auto max-h-[90vh]"
               >
-                <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
-                  <div>
-                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">{viewAnamnesis.title}</h3>
-                    <p className="text-sm text-gray-500">{new Date(viewAnamnesis.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) || viewAnamnesis.date}</p>
-                  </div>
-                  <button onClick={() => setViewAnamnesis(null)} className="text-gray-400 hover:text-red-500 transition-colors">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">Cadastrar Novo Paciente</h3>
+                  <button onClick={() => setShowPatientModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
                     <X size={24} />
                   </button>
                 </div>
-                <div className="p-6 max-h-[70vh] overflow-y-auto">
-                  <div className="whitespace-pre-wrap text-brand-ink dark:text-dark-ink">
-                    {viewAnamnesis.content || 'Nenhum conteúdo registrado.'}
+
+                <form className="space-y-6" onSubmit={async (e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  const newPatient = {
+                    name: formData.get('name'),
+                    email: formData.get('email'),
+                    whatsapp: formData.get('whatsapp'),
+                    birth_date: formData.get('birthDate'),
+                    objective: formData.get('objective'),
+                    gender: formData.get('gender'),
+                    status: 'Ativo'
+                  };
+
+                  const { data: { user } } = await supabase.auth.getUser();
+                  if (user) {
+                    const { data, error } = await supabase.from('patients').insert([{ ...newPatient, doctor_id: user.id }]).select();
+                    if (!error && data) {
+                      setPatients(prev => [data[0], ...prev]);
+                    }
+                  }
+
+                  setShowPatientModal(false);
+                }}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Nome Completo</label>
+                      <input name="name" required type="text" placeholder="Nome do paciente" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">E-mail</label>
+                      <input name="email" type="email" placeholder="exemplo@email.com (Opcional)" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">WhatsApp</label>
+                      <input name="whatsapp" required type="tel" placeholder="(00) 00000-0000" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Data de Nascimento</label>
+                      <input name="birthDate" required type="date" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Objetivo</label>
+                      <select name="objective" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
+                        <option value="">Selecione o objetivo (Opcional)</option>
+                        <option value="Emagrecimento">Emagrecimento</option>
+                        <option value="Hipertrofia">Hipertrofia</option>
+                        <option value="Manutenção">Manutenção</option>
+                        <option value="Saúde">Saúde</option>
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Gênero</label>
+                      <select name="gender" required className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
+                        <option value="">Selecione</option>
+                        <option value="Feminino">Feminino</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Outro">Outro</option>
+                      </select>
+                    </div>
                   </div>
-                </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-[#5A5A40] hover:bg-[#4a4a34] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#5A5A40]/20 transition-all flex items-center justify-center gap-2 group"
+                  >
+                    Cadastrar Paciente
+                    <Check size={18} />
+                  </button>
+                </form>
               </motion.div>
             </div>
-          )}
-
-          {viewAnthropometry && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+          )
+        }
+        {/* Antropometria Modal */}
+        {
+          showAnthropometryModal && (
+            <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#f5f5f0] dark:bg-dark-bg p-0 md:p-6 overflow-hidden">
               <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setViewAnthropometry(null)}
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white dark:bg-dark-card w-full max-w-2xl rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="w-full h-full flex flex-col bg-[#f5f5f0] dark:bg-dark-bg"
               >
-                <div className="p-6 flex justify-between items-center border-b border-gray-100 dark:border-white/5 bg-white dark:bg-dark-card">
+                {/* Header Navbar */}
+                <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-white/10 p-6 flex justify-between items-center shadow-sm z-10">
                   <div>
-                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Antropometria</h3>
-                    <p className="text-sm text-gray-500">{new Date(viewAnthropometry.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' }) || viewAnthropometry.date}</p>
+                    <h2 className="text-2xl font-bold font-serif text-brand-ink dark:text-dark-ink">Avaliação antropométrica</h2>
+                    <p className="text-sm text-gray-500 mt-1">Data da avaliação: {new Date().toLocaleDateString('pt-BR')}, Paciente: {selectedPatient?.name || 'Juliana Casemiro'}, Idade: 41 anos</p>
                   </div>
-                  <button onClick={() => setViewAnthropometry(null)} className="text-gray-400 hover:text-red-500 transition-colors">
-                    <X size={24} />
+                  <button
+                    onClick={() => setShowAnthropometryModal(false)}
+                    className="text-base font-bold text-brand-ink dark:text-dark-ink hover:text-brand-olive transition-colors flex items-center gap-2"
+                  >
+                    Retornar ao menu do paciente
                   </button>
                 </div>
-                <div className="p-6 max-h-[70vh] overflow-y-auto space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                      <p className="text-xs text-gray-400 font-bold mb-1">Peso</p>
-                      <p className="text-lg font-bold text-brand-ink dark:text-dark-ink">{viewAnthropometry.peso || '-'} Kg</p>
-                    </div>
-                    <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl">
-                      <p className="text-xs text-gray-400 font-bold mb-1">Altura</p>
-                      <p className="text-lg font-bold text-brand-ink dark:text-dark-ink">{viewAnthropometry.altura || '-'} cm</p>
-                    </div>
-                  </div>
 
-                  {viewAnthropometry.bioimpedance && Object.keys(viewAnthropometry.bioimpedance).length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="font-bold text-brand-ink dark:text-dark-ink mb-4">Métricas de Bioimpedância</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {Object.entries(viewAnthropometry.bioimpedance).map(([key, value]) => (
-                          <div key={key} className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5">
-                            <p className="text-xs text-gray-400 font-bold mb-1">{key}</p>
-                            <p className="font-medium text-brand-ink dark:text-dark-ink">{String(value) || '-'}</p>
+                {/* Main Content Area */}
+                <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                  <div className="max-w-6xl mx-auto space-y-6">
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <Activity size={18} /> ver evolução
+                      </button>
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <FileText size={18} /> ver anamnese
+                      </button>
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <Calendar size={18} /> avaliações anteriores
+                      </button>
+                      <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                        <Edit2 size={18} /> editar data
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                      {/* Left Column: Inputs */}
+                      <div className="lg:col-span-2 space-y-6">
+                        {/* Basic Data */}
+                        <div className="bg-white dark:bg-dark-card p-6 border border-gray-200 dark:border-white/10 rounded-2xl">
+                          <div className="flex justify-between items-center mb-4">
+                            <div>
+                              <h4 className="font-bold text-brand-ink dark:text-dark-ink">Dados antropométricos básicos</h4>
+                              <p className="text-sm text-gray-500 mt-1">Paciente acamado? <span className="text-red-500 font-bold cursor-pointer">Clique aqui</span> para estimar o peso.</p>
+                            </div>
+                            <ChevronRight className="rotate-[-90deg] text-gray-400" />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Peso (Kg)</label>
+                              <input
+                                type="text"
+                                value={anthropometryPeso}
+                                onChange={(e) => setAnthropometryPeso(e.target.value)}
+                                placeholder="Peso (Kg)"
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Altura (cm)</label>
+                              <input
+                                type="text"
+                                value={anthropometryAltura}
+                                onChange={(e) => setAnthropometryAltura(e.target.value)}
+                                placeholder="Altura (cm)"
+                                className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Altura sentado (cm)</label>
+                              <input type="text" placeholder="Altura sentado (cm)" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-bold text-gray-400 mb-1 block">Altura do joelho (cm)</label>
+                              <input type="text" placeholder="Altura do joelho (cm)" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Accordions */}
+                        {['Balança de bioimpedância', 'Dobras cutâneas (mm)', 'Circunferências corporais (cm)', 'Diâmetro ósseo (cm)', 'Evolução fotográfica'].map((title, i) => (
+                          <div key={i} className="border-b border-gray-300 dark:border-white/10 last:border-0 pb-4">
+                            <div
+                              className="flex justify-between items-center bg-transparent cursor-pointer"
+                              onClick={() => toggleAccordion(title)}
+                            >
+                              <div>
+                                <h4 className="font-bold text-brand-ink dark:text-dark-ink">{title}</h4>
+                                {title === 'Evolução fotográfica' && <p className="text-sm text-gray-500 mt-1">Fotos técnicas do seu paciente, para avaliar a evolução</p>}
+                              </div>
+                              <ChevronRight className={`text-gray-400 transition-transform ${openAccordions[title] ? 'rotate-[-90deg]' : 'rotate-90'}`} />
+                            </div>
+
+                            {openAccordions[title] && (
+                              <div className="pt-4 mt-2 grid grid-cols-2 gap-4 transition-all">
+                                {title === 'Balança de bioimpedância' && (
+                                  <>
+                                    {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal', 'Água Corporal Total'].map((label, j) => {
+                                      const isACT = label === 'Água Corporal Total';
+                                      const computedACT = isACT ? calculateTotalBodyWater(
+                                        anthropometryPeso,
+                                        selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura,
+                                        calculateAge(selectedPatient?.birth_date),
+                                        selectedPatient?.gender
+                                      ) : '';
+
+                                      return (
+                                        <div key={j}>
+                                          <label className="text-xs font-bold text-gray-400 mb-1 block">{label} {isACT && '(L)'}</label>
+                                          <input
+                                            type="text"
+                                            placeholder={label}
+                                            value={isACT ? (computedACT !== '-' ? computedACT.replace(' L', '') : '') : bioimpedance[label] || ''}
+                                            readOnly={isACT}
+                                            onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
+                                            className={`w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none ${isACT ? 'bg-gray-100 dark:bg-white/10 cursor-not-allowed opacity-70' : ''}`}
+                                          />
+                                        </div>
+                                      );
+                                    })}
+                                  </>
+                                )}
+                                {title === 'Evolução fotográfica' && (
+                                  <div className="col-span-2 space-y-4">
+                                    <button className="w-full bg-gray-100 hover:bg-gray-200 text-brand-ink font-bold py-3 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
+                                      <Activity size={18} /> Ver evolução fotográfica
+                                    </button>
+                                    <div className="flex items-center gap-3">
+                                      <div className="w-10 h-6 bg-[#1DE9B6] rounded-full relative cursor-pointer">
+                                        <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1"></div>
+                                      </div>
+                                      <span className="text-sm text-gray-600">Liberar fotos no app do paciente? (Necessário informar o PIN SEGURO) <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span></span>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
-                    </div>
-                  )}
-                </div>
-              </motion.div>
-            </div>
-          )}
 
-          {showConsultationDetailsModal && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowConsultationDetailsModal(null)}
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white dark:bg-dark-card w-full max-w-md rounded-[32px] shadow-2xl relative z-10 overflow-hidden"
-              >
-                <div className="p-6 border-b border-gray-100 dark:border-white/5 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
-                  <div>
-                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Detalhes da Consulta</h3>
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-relaxed mt-1">
-                      {showConsultationDetailsModal.date}
-                    </p>
-                  </div>
-                  <button onClick={() => setShowConsultationDetailsModal(null)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
-                    <X size={20} />
-                  </button>
-                </div>
-                <div className="p-8">
-                  <h4 className="text-sm font-bold text-brand-ink dark:text-dark-ink mb-2">Anotações da consulta:</h4>
-                  <div className="bg-gray-50 dark:bg-white/5 p-4 rounded-2xl text-sm text-gray-600 dark:text-gray-300 min-h-[100px]">
-                    {showConsultationDetailsModal.notes || 'Nenhuma anotação registrada.'}
-                  </div>
+                      {/* Right Column: Analytical Results */}
+                      <div className="bg-gray-50/50 dark:bg-white/5 p-6 border border-gray-200 dark:border-white/10 rounded-2xl w-full">
+                        <div className="flex justify-between items-center mb-6">
+                          <h4 className="font-bold text-brand-ink dark:text-dark-ink flex items-center gap-2">
+                            Resultados analíticos <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span>
+                          </h4>
+                          <button type="button" className="text-sm font-bold text-brand-ink dark:text-dark-ink hover:underline">Ver gráficos</button>
+                        </div>
 
-                  {showConsultationDetailsModal.planner && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="px-3 py-1 bg-brand-olive/10 text-brand-olive rounded-full text-xs font-bold uppercase tracking-widest">
-                        Tarefa Criada
-                      </span>
+                        {/* First Table */}
+                        <div className="space-y-4 mb-6">
+                          <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
+                          <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                            {[
+                              ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
+                              ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
+                              ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) ? `${calculateIMC(anthropometryPeso, anthropometryAltura)} Kg/m²` : '-'],
+                              ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
+                              ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
+                              ['Relação da Cintura/Quadril (RCQ)', '-'],
+                              ['Risco Metabólico por RCQ', '-'],
+                              ['CMB (cm) (Escolha o lado)', '-'],
+                              ['Classificação CMB', '-']
+                            ].map((row, i) => (
+                              <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                <span className={row[0] === 'Faixa de peso ideal' ? 'text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{row[0]}</span>
+                                <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Second Table */}
+                        <div className="space-y-4 mb-6">
+                          <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por dobras e diâmetro ósseo</h5>
+                          <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                            {[
+                              ['Percentual de Gordura (Brozek, 1963)', '-'],
+                              ['Percentual Ideal', '-'],
+                              ['Classif. do % GC(Editar)', '-'],
+                              ['Peso de gordura', '-'],
+                              ['Peso ósseo (por diam. ósseo)', '-'],
+                              ['Massa Muscular', '-'],
+                              ['Peso residual', '-'],
+                              ['Massa Livre de Gordura', '-'],
+                              ['Somatório de Dobras', '-'],
+                              ['Densidade Corporal', '-'],
+                              ['Referência usada', 'Pollock 3, 1989']
+                            ].map((row, i) => (
+                              <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
+                                <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Third Table */}
+                        <div className="space-y-4">
+                          <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por bioimpedância</h5>
+                          <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                            {[
+                              ['Percentual de Gordura', bioimpedance['% Gordura'] ? `${bioimpedance['% Gordura']}%` : '-'],
+                              ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Classif. do % GC (Editar)', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Percentual de Massa Muscular', bioimpedance['% Musculo'] ? `${bioimpedance['% Musculo']}%` : '-'],
+                              ['Massa Muscular', '-'],
+                              ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Peso Ósseo', '-'],
+                              ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
+                              ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
+                              ['Índice de Gordura Visceral', bioimpedance['Gordura Visceral'] || '-'],
+                              ['Idade Metabólica', bioimpedance['Idade Biologica'] ? `${bioimpedance['Idade Biologica']} anos` : '-']
+                            ].map((row, i) => (
+                              <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
+                                <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
                     </div>
-                  )}
+
+                    {/* Save Button */}
+                    <div className="mt-8">
+                      <button
+                        className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all text-base"
+                        type="button"
+                        onClick={async () => {
+                          const anthropometryData = {
+                            patient_id: selectedPatient?.id,
+                            date: new Date().toISOString(),
+                            peso: anthropometryPeso,
+                            altura: anthropometryAltura,
+                            bioimpedance: bioimpedance
+                          };
+
+                          if (editingAnthropometryId) {
+                            const { data, error } = await supabase
+                              .from('anthropometries')
+                              .update(anthropometryData)
+                              .eq('id', editingAnthropometryId)
+                              .select();
+                            if (error) {
+                              alert('Erro ao atualizar: ' + error.message);
+                            } else if (data && data.length > 0) {
+                              setPatientAnthropometries(prev => prev.map(a => a.id === editingAnthropometryId ? data[0] : a));
+                              setShowAnthropometryModal(false);
+                            }
+                          } else {
+                            const { data, error } = await supabase
+                              .from('anthropometries')
+                              .insert([anthropometryData])
+                              .select();
+                            if (error) {
+                              alert('Erro ao salvar antropometria: ' + error.message + '\n\nPor favor, rode o script SQL para criar a tabela "anthropometries" no Supabase.');
+                            } else if (data && data.length > 0) {
+                              setPatientAnthropometries(prev => [data[0], ...prev]);
+                              setActiveSubTab('Antropometria geral');
+                              setShowAnthropometryModal(false);
+                            }
+                          }
+                        }}
+                      >
+                        salvar alterações
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             </div>
           )
-          }
-          {
-            showPatientModal && (
-              <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setShowPatientModal(false)}
-                  className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                  className="bg-white dark:bg-dark-card w-full max-w-2xl rounded-[32px] p-8 shadow-2xl relative z-10 border border-white/20 dark:border-white/5 overflow-y-auto max-h-[90vh]"
-                >
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">Cadastrar Novo Paciente</h3>
-                    <button onClick={() => setShowPatientModal(false)} className="text-gray-400 hover:text-red-500 transition-colors">
-                      <X size={24} />
-                    </button>
-                  </div>
-
-                  <form className="space-y-6" onSubmit={async (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target as HTMLFormElement);
-                    const newPatient = {
-                      name: formData.get('name'),
-                      email: formData.get('email'),
-                      whatsapp: formData.get('whatsapp'),
-                      birth_date: formData.get('birthDate'),
-                      objective: formData.get('objective'),
-                      gender: formData.get('gender'),
-                      status: 'Ativo'
-                    };
-
-                    const { data: { user } } = await supabase.auth.getUser();
-                    if (user) {
-                      const { data, error } = await supabase.from('patients').insert([{ ...newPatient, doctor_id: user.id }]).select();
-                      if (!error && data) {
-                        setPatients(prev => [data[0], ...prev]);
-                      }
-                    }
-
-                    setShowPatientModal(false);
-                  }}>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Nome Completo</label>
-                        <input name="name" required type="text" placeholder="Nome do paciente" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">E-mail</label>
-                        <input name="email" type="email" placeholder="exemplo@email.com (Opcional)" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">WhatsApp</label>
-                        <input name="whatsapp" required type="tel" placeholder="(00) 00000-0000" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Data de Nascimento</label>
-                        <input name="birthDate" required type="date" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200" />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Objetivo</label>
-                        <select name="objective" className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
-                          <option value="">Selecione o objetivo (Opcional)</option>
-                          <option value="Emagrecimento">Emagrecimento</option>
-                          <option value="Hipertrofia">Hipertrofia</option>
-                          <option value="Manutenção">Manutenção</option>
-                          <option value="Saúde">Saúde</option>
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Gênero</label>
-                        <select name="gender" required className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-[#5A5A40]/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 px-4 outline-none transition-all text-gray-700 dark:text-gray-200 appearance-none">
-                          <option value="">Selecione</option>
-                          <option value="Feminino">Feminino</option>
-                          <option value="Masculino">Masculino</option>
-                          <option value="Outro">Outro</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="w-full bg-[#5A5A40] hover:bg-[#4a4a34] text-white font-bold py-4 rounded-2xl shadow-lg shadow-[#5A5A40]/20 transition-all flex items-center justify-center gap-2 group"
-                    >
-                      Cadastrar Paciente
-                      <Check size={18} />
-                    </button>
-                  </form>
-                </motion.div>
-              </div>
-            )
-          }
-          {/* Antropometria Modal */}
-          {
-            showAnthropometryModal && (
-              <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#f5f5f0] dark:bg-dark-bg p-0 md:p-6 overflow-hidden">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  className="w-full h-full flex flex-col bg-[#f5f5f0] dark:bg-dark-bg"
-                >
-                  {/* Header Navbar */}
-                  <div className="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-white/10 p-6 flex justify-between items-center shadow-sm z-10">
-                    <div>
-                      <h2 className="text-2xl font-bold font-serif text-brand-ink dark:text-dark-ink">Avaliação antropométrica</h2>
-                      <p className="text-sm text-gray-500 mt-1">Data da avaliação: {new Date().toLocaleDateString('pt-BR')}, Paciente: {selectedPatient?.name || 'Juliana Casemiro'}, Idade: 41 anos</p>
-                    </div>
-                    <button
-                      onClick={() => setShowAnthropometryModal(false)}
-                      className="text-base font-bold text-brand-ink dark:text-dark-ink hover:text-brand-olive transition-colors flex items-center gap-2"
-                    >
-                      Retornar ao menu do paciente
-                    </button>
-                  </div>
-
-                  {/* Main Content Area */}
-                  <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                    <div className="max-w-6xl mx-auto space-y-6">
-                      {/* Action Buttons */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
-                          <Activity size={18} /> ver evolução
-                        </button>
-                        <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
-                          <FileText size={18} /> ver anamnese
-                        </button>
-                        <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
-                          <Calendar size={18} /> avaliações anteriores
-                        </button>
-                        <button className="bg-[#7B8B9A] hover:bg-[#6A7A8A] text-white font-bold py-3 px-4 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
-                          <Edit2 size={18} /> editar data
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                        {/* Left Column: Inputs */}
-                        <div className="lg:col-span-2 space-y-6">
-                          {/* Basic Data */}
-                          <div className="bg-white dark:bg-dark-card p-6 border border-gray-200 dark:border-white/10 rounded-2xl">
-                            <div className="flex justify-between items-center mb-4">
-                              <div>
-                                <h4 className="font-bold text-brand-ink dark:text-dark-ink">Dados antropométricos básicos</h4>
-                                <p className="text-sm text-gray-500 mt-1">Paciente acamado? <span className="text-red-500 font-bold cursor-pointer">Clique aqui</span> para estimar o peso.</p>
-                              </div>
-                              <ChevronRight className="rotate-[-90deg] text-gray-400" />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                              <div>
-                                <label className="text-xs font-bold text-gray-400 mb-1 block">Peso (Kg)</label>
-                                <input
-                                  type="text"
-                                  value={anthropometryPeso}
-                                  onChange={(e) => setAnthropometryPeso(e.target.value)}
-                                  placeholder="Peso (Kg)"
-                                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-gray-400 mb-1 block">Altura (cm)</label>
-                                <input
-                                  type="text"
-                                  value={anthropometryAltura}
-                                  onChange={(e) => setAnthropometryAltura(e.target.value)}
-                                  placeholder="Altura (cm)"
-                                  className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
-                                />
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-gray-400 mb-1 block">Altura sentado (cm)</label>
-                                <input type="text" placeholder="Altura sentado (cm)" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
-                              </div>
-                              <div>
-                                <label className="text-xs font-bold text-gray-400 mb-1 block">Altura do joelho (cm)</label>
-                                <input type="text" placeholder="Altura do joelho (cm)" className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none" />
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Accordions */}
-                          {['Balança de bioimpedância', 'Dobras cutâneas (mm)', 'Circunferências corporais (cm)', 'Diâmetro ósseo (cm)', 'Evolução fotográfica'].map((title, i) => (
-                            <div key={i} className="border-b border-gray-300 dark:border-white/10 last:border-0 pb-4">
-                              <div
-                                className="flex justify-between items-center bg-transparent cursor-pointer"
-                                onClick={() => toggleAccordion(title)}
-                              >
-                                <div>
-                                  <h4 className="font-bold text-brand-ink dark:text-dark-ink">{title}</h4>
-                                  {title === 'Evolução fotográfica' && <p className="text-sm text-gray-500 mt-1">Fotos técnicas do seu paciente, para avaliar a evolução</p>}
-                                </div>
-                                <ChevronRight className={`text-gray-400 transition-transform ${openAccordions[title] ? 'rotate-[-90deg]' : 'rotate-90'}`} />
-                              </div>
-
-                              {openAccordions[title] && (
-                                <div className="pt-4 mt-2 grid grid-cols-2 gap-4 transition-all">
-                                  {title === 'Balança de bioimpedância' && (
-                                    <>
-                                      {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal', 'Água Corporal Total'].map((label, j) => {
-                                        const isACT = label === 'Água Corporal Total';
-                                        const computedACT = isACT ? calculateTotalBodyWater(
-                                          anthropometryPeso,
-                                          selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura,
-                                          calculateAge(selectedPatient?.birth_date),
-                                          selectedPatient?.gender
-                                        ) : '';
-
-                                        return (
-                                          <div key={j}>
-                                            <label className="text-xs font-bold text-gray-400 mb-1 block">{label} {isACT && '(L)'}</label>
-                                            <input
-                                              type="text"
-                                              placeholder={label}
-                                              value={isACT ? (computedACT !== '-' ? computedACT.replace(' L', '') : '') : bioimpedance[label] || ''}
-                                              readOnly={isACT}
-                                              onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
-                                              className={`w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none ${isACT ? 'bg-gray-100 dark:bg-white/10 cursor-not-allowed opacity-70' : ''}`}
-                                            />
-                                          </div>
-                                        );
-                                      })}
-                                    </>
-                                  )}
-                                  {title === 'Evolução fotográfica' && (
-                                    <div className="col-span-2 space-y-4">
-                                      <button className="w-full bg-gray-100 hover:bg-gray-200 text-brand-ink font-bold py-3 rounded-xl transition-colors text-sm flex items-center justify-center gap-2" type="button">
-                                        <Activity size={18} /> Ver evolução fotográfica
-                                      </button>
-                                      <div className="flex items-center gap-3">
-                                        <div className="w-10 h-6 bg-[#1DE9B6] rounded-full relative cursor-pointer">
-                                          <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1"></div>
-                                        </div>
-                                        <span className="text-sm text-gray-600">Liberar fotos no app do paciente? (Necessário informar o PIN SEGURO) <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span></span>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-
-                        {/* Right Column: Analytical Results */}
-                        <div className="bg-gray-50/50 dark:bg-white/5 p-6 border border-gray-200 dark:border-white/10 rounded-2xl w-full">
-                          <div className="flex justify-between items-center mb-6">
-                            <h4 className="font-bold text-brand-ink dark:text-dark-ink flex items-center gap-2">
-                              Resultados analíticos <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span>
-                            </h4>
-                            <button type="button" className="text-sm font-bold text-brand-ink dark:text-dark-ink hover:underline">Ver gráficos</button>
-                          </div>
-
-                          {/* First Table */}
-                          <div className="space-y-4 mb-6">
-                            <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
-                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
-                              {[
-                                ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
-                                ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
-                                ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) ? `${calculateIMC(anthropometryPeso, anthropometryAltura)} Kg/m²` : '-'],
-                                ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
-                                ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
-                                ['Relação da Cintura/Quadril (RCQ)', '-'],
-                                ['Risco Metabólico por RCQ', '-'],
-                                ['CMB (cm) (Escolha o lado)', '-'],
-                                ['Classificação CMB', '-']
-                              ].map((row, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 text-sm">
-                                  <span className={row[0] === 'Faixa de peso ideal' ? 'text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{row[0]}</span>
-                                  <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Second Table */}
-                          <div className="space-y-4 mb-6">
-                            <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por dobras e diâmetro ósseo</h5>
-                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
-                              {[
-                                ['Percentual de Gordura (Brozek, 1963)', '-'],
-                                ['Percentual Ideal', '-'],
-                                ['Classif. do % GC(Editar)', '-'],
-                                ['Peso de gordura', '-'],
-                                ['Peso ósseo (por diam. ósseo)', '-'],
-                                ['Massa Muscular', '-'],
-                                ['Peso residual', '-'],
-                                ['Massa Livre de Gordura', '-'],
-                                ['Somatório de Dobras', '-'],
-                                ['Densidade Corporal', '-'],
-                                ['Referência usada', 'Pollock 3, 1989']
-                              ].map((row, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 text-sm">
-                                  <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
-                                  <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Third Table */}
-                          <div className="space-y-4">
-                            <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por bioimpedância</h5>
-                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
-                              {[
-                                ['Percentual de Gordura', bioimpedance['% Gordura'] ? `${bioimpedance['% Gordura']}%` : '-'],
-                                ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                                ['Classif. do % GC (Editar)', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                                ['Percentual de Massa Muscular', bioimpedance['% Musculo'] ? `${bioimpedance['% Musculo']}%` : '-'],
-                                ['Massa Muscular', '-'],
-                                ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                                ['Peso Ósseo', '-'],
-                                ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
-                                ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
-                                ['Índice de Gordura Visceral', bioimpedance['Gordura Visceral'] || '-'],
-                                ['Idade Metabólica', bioimpedance['Idade Biologica'] ? `${bioimpedance['Idade Biologica']} anos` : '-']
-                              ].map((row, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 text-sm">
-                                  <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
-                                  <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-
-                        </div>
-                      </div>
-
-                      {/* Save Button */}
-                      <div className="mt-8">
-                        <button
-                          className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all text-base"
-                          type="button"
-                          onClick={async () => {
-                            const anthropometryData = {
-                              patient_id: selectedPatient?.id,
-                              date: new Date().toISOString(),
-                              peso: anthropometryPeso,
-                              altura: anthropometryAltura,
-                              bioimpedance: bioimpedance
-                            };
-
-                            if (editingAnthropometryId) {
-                              const { data, error } = await supabase
-                                .from('anthropometries')
-                                .update(anthropometryData)
-                                .eq('id', editingAnthropometryId)
-                                .select();
-                              if (error) {
-                                alert('Erro ao atualizar: ' + error.message);
-                              } else if (data && data.length > 0) {
-                                setPatientAnthropometries(prev => prev.map(a => a.id === editingAnthropometryId ? data[0] : a));
-                                setShowAnthropometryModal(false);
-                              }
-                            } else {
-                              const { data, error } = await supabase
-                                .from('anthropometries')
-                                .insert([anthropometryData])
-                                .select();
-                              if (error) {
-                                alert('Erro ao salvar antropometria: ' + error.message + '\n\nPor favor, rode o script SQL para criar a tabela "anthropometries" no Supabase.');
-                              } else if (data && data.length > 0) {
-                                setPatientAnthropometries(prev => [data[0], ...prev]);
-                                setActiveSubTab('Antropometria geral');
-                                setShowAnthropometryModal(false);
-                              }
-                            }
-                          }}
-                        >
-                          salvar alterações
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            )
-          }
-        </AnimatePresence >
+        }
+      </AnimatePresence >
       </div >
     );
   }
