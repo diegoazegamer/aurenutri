@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { supabase } from './lib/supabase';
-import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange, getIdealBodyFatRange, classifyBodyFat, calculateFatMass, calculateFatFreeMass, calculateTotalBodyWater } from './utils/anthropometrics';
+import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange, getIdealBodyFatRange, classifyBodyFat, calculateFatMass, calculateFatFreeMass, calculateTotalBodyWater, calculateRCQ, getMetabolicRiskRCQ, calculateCMB, calculateBodyFatPollock3 } from './utils/anthropometrics';
 
 interface Patient {
   id: number;
@@ -92,9 +92,71 @@ export default function App() {
   const [editingAnthropometryId, setEditingAnthropometryId] = useState<number | null>(null);
   const [viewAnthropometry, setViewAnthropometry] = useState<any>(null);
   const [openAccordions, setOpenAccordions] = useState<Record<string, boolean>>({});
+  const [skinfolds, setSkinfolds] = useState<Record<string, string>>({});
+  const [circumferences, setCircumferences] = useState<Record<string, string>>({});
+  const [resultadoIA, setResultadoIA] = useState<any>(null);
+  const [isAnalyzingIA, setIsAnalyzingIA] = useState(false);
 
   const toggleAccordion = (title: string) => {
     setOpenAccordions(prev => ({ ...prev, [title]: !prev[title] }));
+  };
+
+  const analisarComIA = async () => {
+    setIsAnalyzingIA(true);
+    setResultadoIA(null);
+    const imc = calculateIMC(anthropometryPeso, anthropometryAltura);
+    const age = calculateAge(selectedPatient?.birth_date);
+    const bf = bioimpedance['% Gordura'] || '-';
+
+    try {
+      const response = await fetch("http://187.77.60.164:4000/api/ai", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          message: `
+            Aja como um nutricionista renomado. Analise os dados do paciente:
+            Nome: ${selectedPatient?.name}
+            Idade: ${age} anos
+            Sexo: ${selectedPatient?.gender}
+            Peso: ${anthropometryPeso}kg
+            Altura: ${anthropometryAltura}cm
+            IMC: ${imc}
+            Classificação do IMC: ${getIMCClassification(imc)}
+            Percentual de gordura (Bioimpedância): ${bf}%
+
+            Gere um JSON estruturado com:
+            - interpretacao: Interpretação clínica detalhada
+            - riscos: Riscos metabólicos identificados
+            - dieta_popular: Objeto com listas cafe_da_manha, almoco, jantar, lanches (dieta brasileira baixo custo)
+            - recomendacao_agua: Quantidade necessária de água por dia em litros
+          `
+        })
+      });
+
+      const data = await response.json();
+      // Se a resposta vier como string dentro de um campo 'response', tentamos parsear
+      if (typeof data.response === 'string') {
+        try {
+          const jsonContent = data.response.match(/\{[\s\S]*\}/);
+          if (jsonContent) {
+            setResultadoIA(JSON.parse(jsonContent[0]));
+          } else {
+            setResultadoIA({ interpretacao: data.response });
+          }
+        } catch (e) {
+          setResultadoIA({ interpretacao: data.response });
+        }
+      } else {
+        setResultadoIA(data);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Erro ao analisar com IA. Verifique se o servidor está ativo.");
+    } finally {
+      setIsAnalyzingIA(false);
+    }
   };
 
   // Anamnese Geral states
@@ -3125,12 +3187,14 @@ export default function App() {
                                   <>
                                     {['Peso', 'IMC', '% Gordura', '% Musculo', 'Idade Biologica', 'Gordura Visceral', 'Quilocalorias - Kcal', 'Água Corporal Total'].map((label, j) => {
                                       const isACT = label === 'Água Corporal Total';
+                                      const isIMC = label === 'IMC';
                                       const computedACT = isACT ? calculateTotalBodyWater(
                                         anthropometryPeso,
                                         selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura,
                                         calculateAge(selectedPatient?.birth_date),
                                         selectedPatient?.gender
                                       ) : '';
+                                      const computedIMC = isIMC ? calculateIMC(anthropometryPeso, anthropometryAltura) : '';
 
                                       return (
                                         <div key={j}>
@@ -3138,14 +3202,46 @@ export default function App() {
                                           <input
                                             type="text"
                                             placeholder={label}
-                                            value={isACT ? (computedACT !== '-' ? computedACT.replace(' L', '') : '') : bioimpedance[label] || ''}
-                                            readOnly={isACT}
+                                            value={isACT ? (computedACT !== '-' ? computedACT.replace(' L', '') : '') : isIMC ? (computedIMC || '') : bioimpedance[label] || ''}
+                                            readOnly={isACT || isIMC}
                                             onChange={(e) => setBioimpedance({ ...bioimpedance, [label]: e.target.value })}
-                                            className={`w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none ${isACT ? 'bg-gray-100 dark:bg-white/10 cursor-not-allowed opacity-70' : ''}`}
+                                            className={`w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none ${isACT || isIMC ? 'bg-gray-100 dark:bg-white/10 cursor-not-allowed opacity-70' : ''}`}
                                           />
                                         </div>
                                       );
                                     })}
+                                  </>
+                                )}
+                                {title === 'Dobras cutâneas (mm)' && (
+                                  <>
+                                    {['Tríceps', 'Bíceps', 'Subescapular', 'Peitoral', 'Axilar Média', 'Supra-ilíaca', 'Abdominal', 'Coxa', 'Perna'].map((label, j) => (
+                                      <div key={j}>
+                                        <label className="text-xs font-bold text-gray-400 mb-1 block">{label} (mm)</label>
+                                        <input
+                                          type="text"
+                                          placeholder={label}
+                                          value={skinfolds[label] || ''}
+                                          onChange={(e) => setSkinfolds({ ...skinfolds, [label]: e.target.value })}
+                                          className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
+                                        />
+                                      </div>
+                                    ))}
+                                  </>
+                                )}
+                                {title === 'Circunferências corporais (cm)' && (
+                                  <>
+                                    {['Pescoço', 'Ombro', 'Peitoral', 'Cintura', 'Abdominal', 'Quadril', 'Braço Relaxado', 'Braço Contraído', 'Antebraço', 'Coxa', 'Perna'].map((label, j) => (
+                                      <div key={j}>
+                                        <label className="text-xs font-bold text-gray-400 mb-1 block">{label} (cm)</label>
+                                        <input
+                                          type="text"
+                                          placeholder={label}
+                                          value={circumferences[label] || ''}
+                                          onChange={(e) => setCircumferences({ ...circumferences, [label]: e.target.value })}
+                                          className="w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl p-3 font-bold text-brand-ink dark:text-dark-ink focus:border-[#1DE9B6] outline-none"
+                                        />
+                                      </div>
+                                    ))}
                                   </>
                                 )}
                                 {title === 'Evolução fotográfica' && (
@@ -3186,10 +3282,9 @@ export default function App() {
                               ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) ? `${calculateIMC(anthropometryPeso, anthropometryAltura)} Kg/m²` : '-'],
                               ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
                               ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
-                              ['Relação da Cintura/Quadril (RCQ)', '-'],
-                              ['Risco Metabólico por RCQ', '-'],
-                              ['CMB (cm) (Escolha o lado)', '-'],
-                              ['Classificação CMB', '-']
+                              ['Relação da Cintura/Quadril (RCQ)', calculateRCQ(circumferences['Cintura'], circumferences['Quadril']) || '-'],
+                              ['Risco Metabólico por RCQ', getMetabolicRiskRCQ(calculateRCQ(circumferences['Cintura'], circumferences['Quadril']), selectedPatient?.gender)],
+                              ['CMB (cm)', calculateCMB(circumferences['Braço Relaxado'], skinfolds['Tríceps']) ? `${calculateCMB(circumferences['Braço Relaxado'], skinfolds['Tríceps'])} cm` : '-']
                             ].map((row, i) => (
                               <div key={i} className="flex justify-between items-center p-3 text-sm">
                                 <span className={row[0] === 'Faixa de peso ideal' ? 'text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{row[0]}</span>
@@ -3204,16 +3299,11 @@ export default function App() {
                           <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por dobras e diâmetro ósseo</h5>
                           <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
                             {[
-                              ['Percentual de Gordura (Brozek, 1963)', '-'],
-                              ['Percentual Ideal', '-'],
-                              ['Classif. do % GC(Editar)', '-'],
-                              ['Peso de gordura', '-'],
-                              ['Peso ósseo (por diam. ósseo)', '-'],
-                              ['Massa Muscular', '-'],
-                              ['Peso residual', '-'],
-                              ['Massa Livre de Gordura', '-'],
-                              ['Somatório de Dobras', '-'],
-                              ['Densidade Corporal', '-'],
+                              ['Percentual de Gordura (Pollock 3)', calculateBodyFatPollock3(selectedPatient?.gender, calculateAge(selectedPatient?.birth_date), { chest: parseFloat(skinfolds['Peitoral']), abdomen: parseFloat(skinfolds['Abdominal']), thigh: parseFloat(skinfolds['Coxa']), triceps: parseFloat(skinfolds['Tríceps']), suprailiac: parseFloat(skinfolds['Supra-ilíaca']) }) ? `${calculateBodyFatPollock3(selectedPatient?.gender, calculateAge(selectedPatient?.birth_date), { chest: parseFloat(skinfolds['Peitoral']), abdomen: parseFloat(skinfolds['Abdominal']), thigh: parseFloat(skinfolds['Coxa']), triceps: parseFloat(skinfolds['Tríceps']), suprailiac: parseFloat(skinfolds['Supra-ilíaca']) })}%` : '-'],
+                              ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Classif. do % GC', classifyBodyFat(calculateBodyFatPollock3(selectedPatient?.gender, calculateAge(selectedPatient?.birth_date), { chest: parseFloat(skinfolds['Peitoral']), abdomen: parseFloat(skinfolds['Abdominal']), thigh: parseFloat(skinfolds['Coxa']), triceps: parseFloat(skinfolds['Tríceps']), suprailiac: parseFloat(skinfolds['Supra-ilíaca']) }), calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Peso de gordura', calculateFatMass(anthropometryPeso, calculateBodyFatPollock3(selectedPatient?.gender, calculateAge(selectedPatient?.birth_date), { chest: parseFloat(skinfolds['Peitoral']), abdomen: parseFloat(skinfolds['Abdominal']), thigh: parseFloat(skinfolds['Coxa']), triceps: parseFloat(skinfolds['Tríceps']), suprailiac: parseFloat(skinfolds['Supra-ilíaca']) }) || 0)],
+                              ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, calculateBodyFatPollock3(selectedPatient?.gender, calculateAge(selectedPatient?.birth_date), { chest: parseFloat(skinfolds['Peitoral']), abdomen: parseFloat(skinfolds['Abdominal']), thigh: parseFloat(skinfolds['Coxa']), triceps: parseFloat(skinfolds['Tríceps']), suprailiac: parseFloat(skinfolds['Supra-ilíaca']) }) || 0))],
                               ['Referência usada', 'Pollock 3, 1989']
                             ].map((row, i) => (
                               <div key={i} className="flex justify-between items-center p-3 text-sm">
@@ -3225,17 +3315,15 @@ export default function App() {
                         </div>
 
                         {/* Third Table */}
-                        <div className="space-y-4">
+                        <div className="space-y-4 mb-6">
                           <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por bioimpedância</h5>
                           <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
                             {[
                               ['Percentual de Gordura', bioimpedance['% Gordura'] ? `${bioimpedance['% Gordura']}%` : '-'],
                               ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                              ['Classif. do % GC (Editar)', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Classif. do % GC', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
                               ['Percentual de Massa Muscular', bioimpedance['% Musculo'] ? `${bioimpedance['% Musculo']}%` : '-'],
-                              ['Massa Muscular', '-'],
                               ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                              ['Peso Ósseo', '-'],
                               ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
                               ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
                               ['Índice de Gordura Visceral', bioimpedance['Gordura Visceral'] || '-'],
@@ -3247,6 +3335,63 @@ export default function App() {
                               </div>
                             ))}
                           </div>
+                        </div>
+
+                        {/* IA Analysis Section */}
+                        <div className="space-y-4">
+                          <button
+                            onClick={analisarComIA}
+                            disabled={isAnalyzingIA || !anthropometryPeso}
+                            className={`w-full py-3 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${isAnalyzingIA ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-[#1DE9B6] text-black hover:brightness-95'}`}
+                          >
+                            {isAnalyzingIA ? <Activity className="animate-spin" size={18} /> : <Target size={18} />}
+                            {isAnalyzingIA ? 'Analisando...' : 'Analisar com IA'}
+                          </button>
+
+                          {resultadoIA && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              className="bg-white dark:bg-dark-card border border-[#1DE9B6]/30 rounded-xl p-4 shadow-sm space-y-4"
+                            >
+                              <div>
+                                <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm flex items-center gap-2">
+                                  <Check className="text-[#1DE9B6]" size={16} /> Interpretação Clínica
+                                </h5>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 leading-relaxed">{resultadoIA.interpretacao}</p>
+                              </div>
+
+                              {resultadoIA.riscos && (
+                                <div>
+                                  <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Riscos Metabólicos</h5>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">{resultadoIA.riscos}</p>
+                                </div>
+                              )}
+
+                              {resultadoIA.recomendacao_agua && (
+                                <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg">
+                                  <h5 className="font-bold text-blue-700 dark:text-blue-400 text-sm flex items-center gap-2">
+                                    <Droplets size={16} /> Recomendação de Água
+                                  </h5>
+                                  <p className="text-sm font-bold text-blue-800 dark:text-blue-300">{resultadoIA.recomendacao_agua} Litros/dia</p>
+                                </div>
+                              )}
+
+                              {resultadoIA.dieta_popular && (
+                                <div className="space-y-2">
+                                  <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Sugestão de Dieta Popular</h5>
+                                  <div className="grid grid-cols-1 gap-2">
+                                    {Object.entries(resultadoIA.dieta_popular).map(([refeicao, itens]: [string, any]) => (
+                                      <div key={refeicao} className="text-[10px] bg-gray-50 dark:bg-white/5 p-2 rounded-lg">
+                                        <span className="font-bold uppercase text-gray-500">{refeicao.replace(/_/g, ' ')}:</span>
+                                        <span className="ml-1 text-gray-700 dark:text-gray-300">{Array.isArray(itens) ? itens.join(', ') : itens}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </motion.div>
+                          )}
                         </div>
 
                       </div>
@@ -3263,7 +3408,10 @@ export default function App() {
                             date: new Date().toISOString(),
                             peso: anthropometryPeso,
                             altura: anthropometryAltura,
-                            bioimpedance: bioimpedance
+                            bioimpedance: bioimpedance,
+                            skinfolds: skinfolds,
+                            circumferences: circumferences,
+                            ia_analysis: resultadoIA
                           };
 
                           if (editingAnthropometryId) {
@@ -3300,24 +3448,19 @@ export default function App() {
                 </div>
               </motion.div>
             </div>
+          )}
+              </motion.div>
+            </div>
           )
         }
-      </AnimatePresence >
-      </div >
+      </AnimatePresence>
     );
   }
 
-  if (step === 'hydration') {
+  if (step === "hydration") {
     return (
-      <div className="min-h-screen bg-[#f5f5f0] dark:bg-dark-bg transition-colors duration-300 pb-12">
-        {/* Header */}
+      <div className="min-h-screen bg-[#f1f1f1] dark:bg-dark-bg transition-colors duration-3 long pb-12">
         <header className="p-6 flex justify-between items-center max-w-4xl mx-auto w-full">
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => setStep('dashboard')}
-              className="p-2 text-gray-400 hover:text-brand-olive dark:hover:text-brand-gold transition-colors"
-            >
-              <ArrowLeft size={24} />
             </button>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Dra. Aure</p>

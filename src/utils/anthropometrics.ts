@@ -113,3 +113,64 @@ export function calculateTotalBodyWater(
 
     return act.toFixed(2) + ' L';
 }
+
+export function calculateRCQ(waist: string | number, hip: string | number): number | null {
+    const w = parseFloat(String(waist));
+    const h = parseFloat(String(hip));
+    if (!w || !h || h <= 0) return null;
+    return Number((w / h).toFixed(2));
+}
+
+export function getMetabolicRiskRCQ(rcq: number | null, gender: string | undefined): string {
+    if (!rcq || !gender) return '-';
+    const isMale = gender.toLowerCase() === 'masculino' || gender.toLowerCase() === 'homem';
+    
+    if (isMale) {
+        if (rcq < 0.90) return 'Baixo';
+        if (rcq >= 0.90 && rcq <= 0.95) return 'Moderado';
+        return 'Alto';
+    } else {
+        if (rcq < 0.80) return 'Baixo';
+        if (rcq >= 0.80 && rcq <= 0.85) return 'Moderado';
+        return 'Alto';
+    }
+}
+
+export function calculateCMB(armCirc: string | number, tricepsSkinfold: string | number): number | null {
+    const ac = parseFloat(String(armCirc));
+    const ts = parseFloat(String(tricepsSkinfold)) / 10; // mm to cm
+    if (!ac || !ts) return null;
+    return Number((ac - (Math.PI * ts)).toFixed(2));
+}
+
+export function calculateBodyFatPollock3(
+    gender: string | undefined,
+    age: number | null,
+    skinfolds: { chest?: number; abdomen?: number; thigh?: number; triceps?: number; suprailiac?: number }
+): number | null {
+    if (!age || !gender) return null;
+    const isMale = gender.toLowerCase() === 'masculino' || gender.toLowerCase() === 'homem';
+    
+    let sum = 0;
+    let density = 0;
+    
+    if (isMale) {
+        // Pollock 3: Chest, Abdomen, Thigh
+        if (skinfolds.chest && skinfolds.abdomen && skinfolds.thigh) {
+            sum = skinfolds.chest + skinfolds.abdomen + skinfolds.thigh;
+            density = 1.10938 - (0.0008267 * sum) + (0.0000016 * sum * sum) - (0.0002574 * age);
+        }
+    } else {
+        // Pollock 3: Triceps, Suprailiac, Thigh
+        if (skinfolds.triceps && skinfolds.suprailiac && skinfolds.thigh) {
+            sum = skinfolds.triceps + skinfolds.suprailiac + skinfolds.thigh;
+            density = 1.0994921 - (0.0009929 * sum) + (0.0000023 * sum * sum) - (0.0001392 * age);
+        }
+    }
+    
+    if (density === 0) return null;
+    
+    // Siri equation
+    const bf = ((4.95 / density) - 4.5) * 100;
+    return Number(bf.toFixed(2));
+}
