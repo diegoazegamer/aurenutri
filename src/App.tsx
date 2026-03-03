@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer } from 'lucide-react';
+import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer, AlertTriangle, Sparkles } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { supabase } from './lib/supabase';
 import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange, getIdealBodyFatRange, classifyBodyFat, calculateFatMass, calculateFatFreeMass, calculateTotalBodyWater, calculateRCQ, getMetabolicRiskRCQ, calculateCMB, calculateBodyFatPollock3 } from './utils/anthropometrics';
@@ -3139,9 +3139,9 @@ export default function App() {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                       {/* Left Column: Inputs */}
-                      <div className="lg:col-span-2 space-y-6">
+                      <div className="space-y-6">
                         {/* Basic Data */}
                         <div className="bg-white dark:bg-dark-card p-6 border border-gray-200 dark:border-white/10 rounded-2xl">
                           <div className="flex justify-between items-center mb-4">
@@ -3281,37 +3281,59 @@ export default function App() {
                       </div>
 
                       {/* Right Column: Analytical Results */}
-                      <div className="bg-gray-50/50 dark:bg-white/5 p-6 border border-gray-200 dark:border-white/10 rounded-2xl w-full">
-                        <div className="flex justify-between items-center mb-6">
-                          <h4 className="font-bold text-brand-ink dark:text-dark-ink flex items-center gap-2">
-                            Resultados analíticos <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span>
-                          </h4>
-                          <button type="button" className="text-sm font-bold text-brand-ink dark:text-dark-ink hover:underline">Ver gráficos</button>
+                      <div className="space-y-6">
+                        <div className="bg-gray-50/50 dark:bg-white/5 p-6 border border-gray-200 dark:border-white/10 rounded-2xl w-full shadow-sm">
+                          <div className="flex justify-between items-center mb-6">
+                            <h4 className="font-bold text-brand-ink dark:text-dark-ink flex items-center gap-2">
+                              Resultados analíticos <span className="bg-black text-white rounded-full w-4 h-4 inline-flex items-center justify-center text-[10px]">?</span>
+                            </h4>
+                            <button type="button" className="text-sm font-bold text-brand-ink dark:text-dark-ink hover:underline">Ver gráficos</button>
+                          </div>
+
+                          {/* Análises de pesos e medidas */}
+                          <div className="space-y-4 mb-6">
+                            <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
+                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                              {[
+                                ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
+                                ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
+                                ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) ? `${calculateIMC(anthropometryPeso, anthropometryAltura)} Kg/m²` : '-'],
+                                ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
+                                ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
+                                ['Relação da Cintura/Quadril (RCQ)', calculateRCQ(circumferences['Cintura'], circumferences['Quadril']) || '-'],
+                                ['Risco Metabólico por RCQ', getMetabolicRiskRCQ(calculateRCQ(circumferences['Cintura'], circumferences['Quadril']), selectedPatient?.gender)],
+                                ['CMB (cm)', calculateCMB(circumferences['Braço Relaxado'], skinfolds['Tríceps']) ? `${calculateCMB(circumferences['Braço Relaxado'], skinfolds['Tríceps'])} cm` : '-']
+                              ].map((row, i) => (
+                                <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                  <span className={row[0] === 'Faixa de peso ideal' ? 'text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{row[0]}</span>
+                                  <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
                         </div>
 
-                        {/* First Table */}
-                        <div className="space-y-4 mb-6">
-                          <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
-                          <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                        <div>
+                          <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm mb-3">Análises por bioimpedância</h5>
+                          <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card">
                             {[
-                              ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
-                              ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
-                              ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) ? `${calculateIMC(anthropometryPeso, anthropometryAltura)} Kg/m²` : '-'],
-                              ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
-                              ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
-                              ['Relação da Cintura/Quadril (RCQ)', calculateRCQ(circumferences['Cintura'], circumferences['Quadril']) || '-'],
-                              ['Risco Metabólico por RCQ', getMetabolicRiskRCQ(calculateRCQ(circumferences['Cintura'], circumferences['Quadril']), selectedPatient?.gender)],
-                              ['CMB (cm)', calculateCMB(circumferences['Braço Relaxado'], skinfolds['Tríceps']) ? `${calculateCMB(circumferences['Braço Relaxado'], skinfolds['Tríceps'])} cm` : '-']
+                              ['Percentual de Gordura', bioimpedance['% Gordura'] ? `${bioimpedance['% Gordura']}%` : '-'],
+                              ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Classif. do % GC', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                              ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
+                              ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
                             ].map((row, i) => (
                               <div key={i} className="flex justify-between items-center p-3 text-sm">
-                                <span className={row[0] === 'Faixa de peso ideal' ? 'text-gray-500' : 'text-gray-600 dark:text-gray-300'}>{row[0]}</span>
+                                <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
                                 <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        {/* Second Table */}
+                        {/* Additional Analytical Tables from HEAD */}
+                        {/* Second Table: Dobras */}
                         <div className="space-y-4 mb-6">
                           <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por dobras e diâmetro ósseo</h5>
                           <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
@@ -3331,7 +3353,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        {/* Third Table */}
+                        {/* Third Table: Bioimpedância */}
                         <div className="space-y-4 mb-6">
                           <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por bioimpedância</h5>
                           <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
@@ -3410,12 +3432,11 @@ export default function App() {
                             </motion.div>
                           )}
                         </div>
-
                       </div>
                     </div>
 
                     {/* Save Button */}
-                    <div className="mt-8">
+                    < div className="mt-8" >
                       <button
                         className="w-full bg-[#1DE9B6] hover:brightness-95 text-white font-bold py-4 rounded-xl transition-all text-base"
                         type="button"
@@ -3465,8 +3486,9 @@ export default function App() {
                 </div>
               </motion.div>
             </div>
-          )}
-      </AnimatePresence>
+          )
+        }
+      </div>
     );
   }
 
@@ -3474,6 +3496,12 @@ export default function App() {
     return (
       <div className="min-h-screen bg-[#f1f1f1] dark:bg-dark-bg transition-colors duration-3 long pb-12">
         <header className="p-6 flex justify-between items-center max-w-4xl mx-auto w-full">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setStep('dashboard')}
+              className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-gray-400 hover:text-brand-ink transition-colors"
+            >
+              <ArrowLeft size={20} />
             </button>
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-gray-400">Dra. Aure</p>
@@ -3483,266 +3511,266 @@ export default function App() {
           <button className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-gray-400">
             <Settings size={20} />
           </button>
-        </header >
+        </header>
 
-      <main className="px-6 max-w-4xl mx-auto w-full space-y-8">
-        {/* Circular Progress */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center py-8 relative"
-        >
-          <div className="relative w-72 h-64">
-            <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
-
-            <svg className="w-full h-full transform -rotate-90 relative z-10">
-              <circle
-                cx="128"
-                cy="128"
-                r="110"
-                stroke="currentColor"
-                strokeWidth="12"
-                fill="transparent"
-                className="text-white dark:text-dark-card shadow-inner"
-              />
-              <circle
-                cx="128"
-                cy="128"
-                r="110"
-                stroke="currentColor"
-                strokeWidth="12"
-                fill="transparent"
-                strokeDasharray={691}
-                strokeDashoffset={691 * (1 - waterIntake / waterGoal)}
-                className="text-blue-500 transition-all duration-1000 ease-out"
-                strokeLinecap="round"
-              />
-            </svg>
-
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-              <div className="flex items-baseline gap-1">
-                <span className="text-5xl font-bold text-brand-ink dark:text-dark-ink">{waterIntake.toFixed(1)}</span>
-                <span className="text-2xl font-bold text-gray-400">L</span>
-              </div>
-              <div className="bg-gray-100 dark:bg-white/5 px-4 py-1 rounded-full mt-2">
-                <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Meta: {waterGoal}L</p>
-              </div>
-            </div>
-          </div>
-
+        <main className="px-6 max-w-4xl mx-auto w-full space-y-8">
+          {/* Circular Progress */}
           <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-[-20px] bg-white dark:bg-dark-card px-6 py-3 rounded-2xl shadow-lg border border-white/20 dark:border-white/5 flex items-center gap-3 z-30"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-8 relative"
           >
-            <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
-              <Droplets size={16} />
+            <div className="relative w-72 h-64">
+              <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+
+              <svg className="w-full h-full transform -rotate-90 relative z-10">
+                <circle
+                  cx="128"
+                  cy="128"
+                  r="110"
+                  stroke="currentColor"
+                  strokeWidth="12"
+                  fill="transparent"
+                  className="text-white dark:text-dark-card shadow-inner"
+                />
+                <circle
+                  cx="128"
+                  cy="128"
+                  r="110"
+                  stroke="currentColor"
+                  strokeWidth="12"
+                  fill="transparent"
+                  strokeDasharray={691}
+                  strokeDashoffset={691 * (1 - waterIntake / waterGoal)}
+                  className="text-blue-500 transition-all duration-1000 ease-out"
+                  strokeLinecap="round"
+                />
+              </svg>
+
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-5xl font-bold text-brand-ink dark:text-dark-ink">{waterIntake.toFixed(1)}</span>
+                  <span className="text-2xl font-bold text-gray-400">L</span>
+                </div>
+                <div className="bg-gray-100 dark:bg-white/5 px-4 py-1 rounded-full mt-2">
+                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Meta: {waterGoal}L</p>
+                </div>
+              </div>
             </div>
-            <p className="text-base font-bold text-brand-ink dark:text-dark-ink">
-              Restam <span className="text-blue-500">{(waterGoal - waterIntake).toFixed(1)}L</span>
-            </p>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-[-20px] bg-white dark:bg-dark-card px-6 py-3 rounded-2xl shadow-lg border border-white/20 dark:border-white/5 flex items-center gap-3 z-30"
+            >
+              <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                <Droplets size={16} />
+              </div>
+              <p className="text-base font-bold text-brand-ink dark:text-dark-ink">
+                Restam <span className="text-blue-500">{(waterGoal - waterIntake).toFixed(1)}L</span>
+              </p>
+            </motion.div>
           </motion.div>
-        </motion.div>
 
-        {/* Quick Log */}
-        <section className="space-y-4">
-          <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Registro Rápido</h3>
-          <div className="grid grid-cols-3 gap-4">
-            {[
-              { icon: <GlassWater size={24} />, label: 'Copo', amount: '200ml', value: 200 },
-              { icon: <Milk size={24} />, label: 'Garrafa', amount: '500ml', value: 500 },
-              { icon: <Plus size={24} />, label: 'Outro', amount: 'Manual', value: 0 },
-            ].map((item, i) => (
-              <motion.button
-                key={i}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => {
-                  if (item.value > 0) {
-                    addHydration(item.label === 'Copo' ? 'Água' : 'Água Mineral', item.value, item.icon);
-                  } else {
-                    setShowManualModal(true);
-                  }
-                }}
-                className="bg-white dark:bg-dark-card p-4 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col items-center gap-2 transition-all hover:border-blue-500/30"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                  {item.icon}
-                </div>
-                <div className="text-center">
-                  <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">{item.label}</p>
-                  <p className="text-xs text-gray-400 font-bold">{item.amount}</p>
-                </div>
-              </motion.button>
-            ))}
-          </div>
-        </section>
-
-        {/* History */}
-        <section className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Histórico de Hoje</h3>
-            <button className="text-xs font-bold text-blue-500 uppercase tracking-widest">Ver tudo</button>
-          </div>
-          <div className="space-y-3">
-            {hydrationHistory.map((item, i) => (
-              <motion.div
-                key={item.id}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-white/20 dark:border-white/5 shadow-sm flex items-center justify-between group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-blue-500">
+          {/* Quick Log */}
+          <section className="space-y-4">
+            <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Registro Rápido</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { icon: <GlassWater size={24} />, label: 'Copo', amount: '200ml', value: 200 },
+                { icon: <Milk size={24} />, label: 'Garrafa', amount: '500ml', value: 500 },
+                { icon: <Plus size={24} />, label: 'Outro', amount: 'Manual', value: 0 },
+              ].map((item, i) => (
+                <motion.button
+                  key={i}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    if (item.value > 0) {
+                      addHydration(item.label === 'Copo' ? 'Água' : 'Água Mineral', item.value, item.icon);
+                    } else {
+                      setShowManualModal(true);
+                    }
+                  }}
+                  className="bg-white dark:bg-dark-card p-4 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col items-center gap-2 transition-all hover:border-blue-500/30"
+                >
+                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
                     {item.icon}
                   </div>
-                  <div>
-                    <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.type}</p>
-                    <p className="text-xs text-gray-400 font-bold tracking-widest">{item.time}</p>
+                  <div className="text-center">
+                    <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">{item.label}</p>
+                    <p className="text-xs text-gray-400 font-bold">{item.amount}</p>
                   </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.amount}ml</p>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => startEditingHydration(item.id)}
-                      className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
-                    >
-                      <Edit2 size={14} />
-                    </button>
-                    <button
-                      onClick={() => deleteHydration(item.id)}
-                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
+                </motion.button>
+              ))}
+            </div>
+          </section>
+
+          {/* History */}
+          <section className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Histórico de Hoje</h3>
+              <button className="text-xs font-bold text-blue-500 uppercase tracking-widest">Ver tudo</button>
+            </div>
+            <div className="space-y-3">
+              {hydrationHistory.map((item, i) => (
+                <motion.div
+                  key={item.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                  className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-white/20 dark:border-white/5 shadow-sm flex items-center justify-between group"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-blue-500">
+                      {item.icon}
+                    </div>
+                    <div>
+                      <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.type}</p>
+                      <p className="text-xs text-gray-400 font-bold tracking-widest">{item.time}</p>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-
-        {/* Smart Reminders */}
-        <section className="bg-blue-600 dark:bg-blue-700 p-6 rounded-[32px] shadow-xl shadow-blue-500/20 text-white space-y-6">
-          <div className="flex justify-between items-center">
-            <div className="space-y-1">
-              <h3 className="text-lg font-bold">Lembretes Inteligentes</h3>
-              <p className="text-xs text-blue-100">Receba notificações para beber água.</p>
+                  <div className="flex items-center gap-4">
+                    <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.amount}ml</p>
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => startEditingHydration(item.id)}
+                        className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                      >
+                        <Edit2 size={14} />
+                      </button>
+                      <button
+                        onClick={() => deleteHydration(item.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
-            <button
-              onClick={() => setRemindersEnabled(!remindersEnabled)}
-              className={`w-12 h-6 rounded-full transition-colors relative ${remindersEnabled ? 'bg-white' : 'bg-blue-400'}`}
-            >
-              <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${remindersEnabled ? 'right-1 bg-blue-600' : 'left-1 bg-white'}`} />
-            </button>
-          </div>
+          </section>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Intervalo</p>
-              <div className="flex justify-between items-center">
-                <span className="text-base font-bold">A cada 2h</span>
-                <Clock size={16} className="text-blue-200" />
+          {/* Smart Reminders */}
+          <section className="bg-blue-600 dark:bg-blue-700 p-6 rounded-[32px] shadow-xl shadow-blue-500/20 text-white space-y-6">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1">
+                <h3 className="text-lg font-bold">Lembretes Inteligentes</h3>
+                <p className="text-xs text-blue-100">Receba notificações para beber água.</p>
               </div>
-            </div>
-            <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Período</p>
-              <div className="flex justify-between items-center">
-                <span className="text-base font-bold">08:00 - 22:00</span>
-                <Clock size={16} className="text-blue-200" />
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
-
-    {/* FAB */ }
-    <motion.button
-      whileHover={{ scale: 1.1 }}
-      whileTap={{ scale: 0.9 }}
-      className="fixed bottom-8 right-8 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center z-50"
-    >
-      <Plus size={28} />
-    </motion.button>
-
-    {/* Manual Entry Modal */ }
-    <AnimatePresence>
-      {showManualModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setShowManualModal(false)}
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-          />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-white dark:bg-dark-card w-full max-w-sm rounded-[32px] p-8 shadow-2xl relative z-10 border border-white/20 dark:border-white/5"
-          >
-            <div className="flex justify-between items-center mb-6">
-              <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">
-                {editingId !== null ? 'Editar Registro' : 'Registro Manual'}
-              </h3>
-              <button onClick={() => {
-                setShowManualModal(false);
-                setEditingId(null);
-                setManualType('');
-                setManualAmount('');
-              }} className="text-gray-400 hover:text-red-500 transition-colors">
-                <X size={24} />
-              </button>
-            </div>
-
-            <form onSubmit={handleManualSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Tipo de Líquido</label>
-                <div className="relative group">
-                  <CupSoda className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                  <input
-                    required
-                    type="text"
-                    value={manualType}
-                    onChange={(e) => setManualType(e.target.value)}
-                    placeholder="Ex: Suco de Laranja, Chá..."
-                    className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Quantidade (ml)</label>
-                <div className="relative group">
-                  <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                  <input
-                    required
-                    type="number"
-                    value={manualAmount}
-                    onChange={(e) => setManualAmount(e.target.value)}
-                    placeholder="Ex: 300"
-                    className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
-                  />
-                </div>
-              </div>
-
               <button
-                type="submit"
-                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 group"
+                onClick={() => setRemindersEnabled(!remindersEnabled)}
+                className={`w-12 h-6 rounded-full transition-colors relative ${remindersEnabled ? 'bg-white' : 'bg-blue-400'}`}
               >
-                {editingId !== null ? 'Salvar Alterações' : 'Adicionar Registro'}
-                <Check size={18} />
+                <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${remindersEnabled ? 'right-1 bg-blue-600' : 'left-1 bg-white'}`} />
               </button>
-            </form>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
-      </div >
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Intervalo</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-base font-bold">A cada 2h</span>
+                  <Clock size={16} className="text-blue-200" />
+                </div>
+              </div>
+              <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
+                <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Período</p>
+                <div className="flex justify-between items-center">
+                  <span className="text-base font-bold">08:00 - 22:00</span>
+                  <Clock size={16} className="text-blue-200" />
+                </div>
+              </div>
+            </div>
+          </section>
+        </main>
+
+        {/* FAB */}
+        <motion.button
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          className="fixed bottom-8 right-8 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center z-50"
+        >
+          <Plus size={28} />
+        </motion.button>
+
+        {/* Manual Entry Modal */}
+        <AnimatePresence>
+          {showManualModal && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowManualModal(false)}
+                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white dark:bg-dark-card w-full max-w-sm rounded-[32px] p-8 shadow-2xl relative z-10 border border-white/20 dark:border-white/5"
+              >
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">
+                    {editingId !== null ? 'Editar Registro' : 'Registro Manual'}
+                  </h3>
+                  <button onClick={() => {
+                    setShowManualModal(false);
+                    setEditingId(null);
+                    setManualType('');
+                    setManualAmount('');
+                  }} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <form onSubmit={handleManualSubmit} className="space-y-6">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Tipo de Líquido</label>
+                    <div className="relative group">
+                      <CupSoda className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                      <input
+                        required
+                        type="text"
+                        value={manualType}
+                        onChange={(e) => setManualType(e.target.value)}
+                        placeholder="Ex: Suco de Laranja, Chá..."
+                        className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Quantidade (ml)</label>
+                    <div className="relative group">
+                      <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                      <input
+                        required
+                        type="number"
+                        value={manualAmount}
+                        onChange={(e) => setManualAmount(e.target.value)}
+                        placeholder="Ex: 300"
+                        className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 group"
+                  >
+                    {editingId !== null ? 'Salvar Alterações' : 'Adicionar Registro'}
+                    <Check size={18} />
+                  </button>
+                </form>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+      </div>
     );
   }
 
