@@ -5,7 +5,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer, AlertTriangle, Sparkles } from 'lucide-react';
+import { Mail, Lock, User, Leaf, ChevronRight, Phone, Calendar, MapPin, Hash, Building, Landmark, Globe, ArrowLeft, Ruler, Weight, Target, Activity, Plus, X, Check, Sun, Moon, Bell, Camera, Utensils, Pill, FileText, Droplets, Home, MessageCircle, ClipboardList, Settings, CupSoda, GlassWater, Milk, Clock, Trash2, Edit2, Users, Search, Filter, MoreVertical, FilePlus, LogOut, LayoutDashboard, Flame, Printer } from 'lucide-react';
+import { AlertTriangle, Sparkles } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, BarChart, Bar, Cell } from 'recharts';
 import { supabase } from './lib/supabase';
 import { calculateAge, calculateIMC, getIMCClassification, calculateIdealWeightRange, getIdealBodyFatRange, classifyBodyFat, calculateFatMass, calculateFatFreeMass, calculateTotalBodyWater, calculateRCQ, getMetabolicRiskRCQ, calculateCMB, calculateBodyFatPollock3 } from './utils/anthropometrics';
@@ -3290,6 +3291,7 @@ export default function App() {
                             <button type="button" className="text-sm font-bold text-brand-ink dark:text-dark-ink hover:underline">Ver gráficos</button>
                           </div>
 
+<<<<<<< HEAD
                           {/* Análises de pesos e medidas */}
                           <div className="space-y-4 mb-6">
                             <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises de pesos e medidas</h5>
@@ -3309,10 +3311,51 @@ export default function App() {
                                   <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
                                 </div>
                               ))}
+=======
+                          {/* Individual Result Tables */}
+                          <div className="space-y-6">
+                            {/* Logic for results... */}
+                            <div>
+                              <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm mb-3">Análises de pesos e medidas</h5>
+                              <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                                {[
+                                  ['Peso atual', anthropometryPeso ? `${anthropometryPeso} Kg` : '-'],
+                                  ['Altura atual', anthropometryAltura ? `${anthropometryAltura} cm` : '-'],
+                                  ['Índice de Massa Corporal', calculateIMC(anthropometryPeso, anthropometryAltura) ? `${calculateIMC(anthropometryPeso, anthropometryAltura)} Kg/m²` : '-'],
+                                  ['Classificação do IMC', getIMCClassification(calculateIMC(anthropometryPeso, anthropometryAltura))],
+                                  ['Faixa de peso ideal', calculateIdealWeightRange(anthropometryAltura)],
+                                ].map((row, i) => (
+                                  <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                    <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
+                                    <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div>
+                              <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm mb-3">Análises por bioimpedância</h5>
+                              <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
+                                {[
+                                  ['Percentual de Gordura', bioimpedance['% Gordura'] ? `${bioimpedance['% Gordura']}%` : '-'],
+                                  ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                                  ['Classif. do % GC', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                                  ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
+                                  ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
+                                  ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
+                                ].map((row, i) => (
+                                  <div key={i} className="flex justify-between items-center p-3 text-sm">
+                                    <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
+                                    <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
+                                  </div>
+                                ))}
+                              </div>
+>>>>>>> 89ebcc8 (adasd)
                             </div>
                           </div>
                         </div>
 
+<<<<<<< HEAD
                         <div>
                           <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm mb-3">Análises por bioimpedância</h5>
                           <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card">
@@ -3392,6 +3435,14 @@ export default function App() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               className="bg-white dark:bg-dark-card border border-[#1DE9B6]/30 rounded-xl p-4 shadow-sm space-y-4"
+=======
+                          {/* AI Analysis Section */}
+                          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-white/10">
+                            <button
+                              onClick={analisarComIA}
+                              disabled={isAnalyzing || !anthropometryPeso || !anthropometryAltura}
+                              className={`w-full ${isAnalyzing ? 'bg-gray-400' : 'bg-[#1DE9B6] hover:brightness-95'} text-black font-bold py-3 rounded-xl transition-all flex items-center justify-center gap-2`}
+>>>>>>> 89ebcc8 (adasd)
                             >
                               <div>
                                 <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm flex items-center gap-2">
@@ -3488,8 +3539,14 @@ export default function App() {
             </div>
           )
         }
+<<<<<<< HEAD
       </div>
     );
+=======
+      </main>
+    </div >
+  );
+>>>>>>> 89ebcc8 (adasd)
   }
 
   if (step === "hydration") {
