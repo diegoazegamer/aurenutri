@@ -3281,27 +3281,7 @@ export default function App() {
                             </div>
                           </div>
 
-                          <div>
-                            <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm mb-3">Análises por bioimpedância</h5>
-                            <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card">
-                              {[
-                                ['Percentual de Gordura', bioimpedance['% Gordura'] ? `${bioimpedance['% Gordura']}%` : '-'],
-                                ['Percentual Ideal', getIdealBodyFatRange(calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                                ['Classif. do % GC', classifyBodyFat(bioimpedance['% Gordura'], calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                                ['Água Corporal Total', calculateTotalBodyWater(anthropometryPeso, selectedPatient?.height ? selectedPatient.height * 100 : anthropometryAltura, calculateAge(selectedPatient?.birth_date), selectedPatient?.gender)],
-                                ['Massa de gordura', calculateFatMass(anthropometryPeso, bioimpedance['% Gordura'])],
-                                ['Massa Livre de Gordura', calculateFatFreeMass(anthropometryPeso, calculateFatMass(anthropometryPeso, bioimpedance['% Gordura']))],
-                              ].map((row, i) => (
-                                <div key={i} className="flex justify-between items-center p-3 text-sm">
-                                  <span className="text-gray-600 dark:text-gray-300">{row[0]}</span>
-                                  <span className="font-medium text-brand-ink dark:text-white">{row[1]}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
 
-                          {/* Additional Analytical Tables from HEAD */}
-                          {/* Second Table: Dobras */}
                           <div className="space-y-4 mb-6">
                             <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por dobras e diâmetro ósseo</h5>
                             <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
@@ -3321,7 +3301,6 @@ export default function App() {
                             </div>
                           </div>
 
-                          {/* Third Table: Bioimpedância */}
                           <div className="space-y-4 mb-6">
                             <h5 className="font-bold text-brand-ink dark:text-dark-ink text-sm">Análises por bioimpedância</h5>
                             <div className="border border-gray-200 dark:border-white/10 rounded-xl overflow-hidden divide-y divide-gray-200 dark:divide-white/10 bg-white dark:bg-dark-card shadow-sm">
