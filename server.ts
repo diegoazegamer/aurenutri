@@ -3,6 +3,10 @@ import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -53,6 +57,13 @@ for (const col of columns) {
   }
 }
 
+// AI Integration
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+const model = genAI.getGenerativeModel({
+  model: "gemini-1.5-flash",
+  generationConfig: { responseMimeType: "application/json" }
+});
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -83,7 +94,7 @@ async function startServer() {
   });
 
   app.post("/api/update-profile", (req, res) => {
-    const { 
+    const {
       id, birth_date, cep, street, number, neighborhood, city, state, uf,
       gender, height, weight, objective, activity_level, dietary_restrictions
     } = req.body;
@@ -103,6 +114,44 @@ async function startServer() {
       res.json({ success: true, user });
     } catch (error: any) {
       res.status(400).json({ success: false, error: error.message });
+    }
+  });
+
+  app.post("/api/ai", async (req, res) => {
+    const { message } = req.body;
+    try {
+      const systemPrompt = `
+        Você é um nutricionista renomado e experiente. 
+        Analise os dados antropométricos fornecidos e forneça uma interpretação clínica, riscos metabólicos e sugestões dietéticas populares brasileiras de baixo custo.
+        
+        Você DEVE responder APENAS com um objeto JSON válido seguindo EXATAMENTE esta estrutura:
+        {
+          "interpretacao": "Sua interpretação clínica detalhada aqui...",
+          "riscos": "Sua análise de riscos metabólicos aqui...",
+          "dieta_popular": {
+            "cafe_da_manha": ["item 1", "item 2"],
+            "almoco": ["item 1", "item 2"],
+            "jantar": ["item 1", "item 2"],
+            "lanches": ["item 1", "item 2"]
+          },
+          "agua_recomendada": "Quantidade de água recomendada em litros."
+        }
+      `;
+
+      const result = await model.generateContent([systemPrompt, message]);
+      const response = await result.response;
+      const text = response.text();
+
+      try {
+        const jsonResponse = JSON.parse(text);
+        res.json(jsonResponse);
+      } catch (parseError) {
+        console.error("Erro ao analisar resposta JSON da IA:", text);
+        res.status(500).json({ error: "A IA retornou um formato inválido." });
+      }
+    } catch (error: any) {
+      console.error("Erro na API de IA:", error);
+      res.status(500).json({ error: error.message });
     }
   });
 
