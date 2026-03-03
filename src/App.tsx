@@ -1099,7 +1099,25 @@ export default function App() {
           )}
 
           {/* Content Area */}
-          {activeTab === 'patient-details' && selectedPatient ? (
+          {activeTab === 'ai-analysis' ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white dark:bg-dark-card p-12 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5 text-center space-y-4"
+            >
+              <div className="w-20 h-20 bg-emerald-50 dark:bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto text-emerald-500">
+                <Sparkles size={40} />
+              </div>
+              <h4 className="text-xl font-bold text-brand-ink dark:text-dark-ink">Análise Inteligente (IA)</h4>
+              <p className="text-sm text-gray-400 max-w-xs mx-auto">Esta funcionalidade está sendo preparada para oferecer diagnósticos e insights avançados baseados nos dados dos seus pacientes.</p>
+              <button
+                onClick={() => setActiveTab('patients')}
+                className="bg-[#5A5A40] text-white px-6 py-2 rounded-xl text-base font-bold hover:bg-[#4a4a34] transition-all inline-block mt-4"
+              >
+                Voltar para Pacientes
+              </button>
+            </motion.div>
+          ) : activeTab === 'patient-details' && selectedPatient ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
