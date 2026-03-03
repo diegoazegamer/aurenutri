@@ -63,7 +63,7 @@ export default function App() {
   const [editingId, setEditingId] = useState<number | null>(null);
 
   // Doctor Dashboard States
-  const [activeTab, setActiveTab] = useState<'start' | 'patients' | 'requests' | 'appointments' | 'patient-details'>('start');
+  const [activeTab, setActiveTab] = useState<'start' | 'patients' | 'requests' | 'appointments' | 'patient-details' | 'ai-analysis'>('start');
   const [activeSubTab, setActiveSubTab] = useState('Perfil do paciente');
   const [searchQuery, setSearchQuery] = useState('');
   const [showRequestModal, setShowRequestModal] = useState(false);
@@ -1017,6 +1017,7 @@ export default function App() {
               { id: 'appointments', label: 'Agenda', icon: <Calendar size={20} /> },
               { id: 'requests', label: 'Pedidos Médicos', icon: <FilePlus size={20} /> },
               { id: 'stats', label: 'Estatísticas', icon: <LayoutDashboard size={20} /> },
+              { id: 'ai-analysis', label: 'Analizar IA', icon: <Sparkles size={20} className="text-emerald-500" /> },
             ].map((item) => (
               <button
                 key={item.id}
