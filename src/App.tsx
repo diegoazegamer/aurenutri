@@ -2261,7 +2261,10 @@ export default function App() {
                   <button onClick={() => setShowPatientDetailsModal(false)} className="p-2 text-gray-400 hover:text-brand-olive transition-colors">
                     <ArrowLeft size={24} />
                   </button>
-                  <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink">Perfil do Paciente</h3>
+                  <div className="flex-1 px-4">
+                    <h3 className="serif text-xl font-bold text-brand-ink dark:text-dark-ink truncate">{selectedPatient.name}</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-none">Paciente Selecionado</p>
+                  </div>
                   <button className="text-brand-olive dark:text-brand-gold font-bold text-sm">Editar</button>
                 </div>
 
@@ -2300,21 +2303,35 @@ export default function App() {
                     ))}
                   </div>
 
-                  {/* Action Buttons */}
-                  <button className="bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-4 rounded-3xl shadow-lg shadow-green-500/20 transition-all flex flex-col items-center justify-center gap-1 col-span-2">
-                    <Utensils size={18} />
-                    <span className="text-base uppercase tracking-widest">Plano</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      setShowPatientDetailsModal(false);
-                      setActiveTab('appointments');
-                    }}
-                    className="bg-white dark:bg-dark-card text-brand-ink dark:text-dark-ink font-bold py-4 rounded-3xl shadow-sm border border-white/20 dark:border-white/5 transition-all flex flex-col items-center justify-center gap-1 col-span-2"
-                  >
-                    <Calendar size={18} className="text-blue-500" />
-                    <span className="text-base uppercase tracking-widest">Agendar</span>
-                  </button>
+                  <div className="grid grid-cols-2 gap-4">
+                    <button className="bg-[#00E676] hover:bg-[#00C853] text-white font-bold py-4 rounded-3xl shadow-lg shadow-green-500/20 transition-all flex flex-col items-center justify-center gap-1">
+                      <Utensils size={18} />
+                      <span className="text-sm uppercase tracking-widest">Plano</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowPatientDetailsModal(false);
+                        setActiveTab('appointments');
+                      }}
+                      className="bg-white dark:bg-dark-card text-brand-ink dark:text-dark-ink font-bold py-4 rounded-3xl shadow-sm border border-white/20 dark:border-white/5 transition-all flex flex-col items-center justify-center gap-1"
+                    >
+                      <Calendar size={18} className="text-blue-500" />
+                      <span className="text-sm uppercase tracking-widest">Agendar</span>
+                    </button>
+                    <button
+                      onClick={() => setShowPrescriptionListModal(true)}
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-3xl shadow-lg shadow-blue-500/20 transition-all flex flex-col items-center justify-center gap-1"
+                    >
+                      <Pill size={18} />
+                      <span className="text-sm uppercase tracking-widest">Receitas</span>
+                    </button>
+                    <button
+                      className="bg-white dark:bg-dark-card text-brand-ink dark:text-dark-ink font-bold py-4 rounded-3xl shadow-sm border border-white/20 dark:border-white/5 transition-all flex flex-col items-center justify-center gap-1"
+                    >
+                      <MessageCircle size={18} className="text-[#1DE9B6]" />
+                      <span className="text-sm uppercase tracking-widest">Chat</span>
+                    </button>
+                  </div>
 
                   {/* Evolution Chart */}
                   <div className="bg-white dark:bg-dark-card p-6 rounded-[40px] shadow-sm border border-white/20 dark:border-white/5">
@@ -3449,10 +3466,6 @@ export default function App() {
               </motion.div>
             </div>
           )}
-              </motion.div>
-            </div>
-          )
-        }
       </AnimatePresence>
     );
   }
@@ -3470,266 +3483,266 @@ export default function App() {
           <button className="p-3 rounded-2xl bg-white dark:bg-dark-card shadow-sm text-gray-400">
             <Settings size={20} />
           </button>
-        </header>
+        </header >
 
-        <main className="px-6 max-w-4xl mx-auto w-full space-y-8">
-          {/* Circular Progress */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-col items-center justify-center py-8 relative"
-          >
-            <div className="relative w-72 h-64">
-              <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+      <main className="px-6 max-w-4xl mx-auto w-full space-y-8">
+        {/* Circular Progress */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center justify-center py-8 relative"
+        >
+          <div className="relative w-72 h-64">
+            <div className="absolute inset-0 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
 
-              <svg className="w-full h-full transform -rotate-90 relative z-10">
-                <circle
-                  cx="128"
-                  cy="128"
-                  r="110"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  fill="transparent"
-                  className="text-white dark:text-dark-card shadow-inner"
-                />
-                <circle
-                  cx="128"
-                  cy="128"
-                  r="110"
-                  stroke="currentColor"
-                  strokeWidth="12"
-                  fill="transparent"
-                  strokeDasharray={691}
-                  strokeDashoffset={691 * (1 - waterIntake / waterGoal)}
-                  className="text-blue-500 transition-all duration-1000 ease-out"
-                  strokeLinecap="round"
-                />
-              </svg>
+            <svg className="w-full h-full transform -rotate-90 relative z-10">
+              <circle
+                cx="128"
+                cy="128"
+                r="110"
+                stroke="currentColor"
+                strokeWidth="12"
+                fill="transparent"
+                className="text-white dark:text-dark-card shadow-inner"
+              />
+              <circle
+                cx="128"
+                cy="128"
+                r="110"
+                stroke="currentColor"
+                strokeWidth="12"
+                fill="transparent"
+                strokeDasharray={691}
+                strokeDashoffset={691 * (1 - waterIntake / waterGoal)}
+                className="text-blue-500 transition-all duration-1000 ease-out"
+                strokeLinecap="round"
+              />
+            </svg>
 
-              <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-                <div className="flex items-baseline gap-1">
-                  <span className="text-5xl font-bold text-brand-ink dark:text-dark-ink">{waterIntake.toFixed(1)}</span>
-                  <span className="text-2xl font-bold text-gray-400">L</span>
-                </div>
-                <div className="bg-gray-100 dark:bg-white/5 px-4 py-1 rounded-full mt-2">
-                  <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Meta: {waterGoal}L</p>
-                </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+              <div className="flex items-baseline gap-1">
+                <span className="text-5xl font-bold text-brand-ink dark:text-dark-ink">{waterIntake.toFixed(1)}</span>
+                <span className="text-2xl font-bold text-gray-400">L</span>
+              </div>
+              <div className="bg-gray-100 dark:bg-white/5 px-4 py-1 rounded-full mt-2">
+                <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Meta: {waterGoal}L</p>
               </div>
             </div>
+          </div>
 
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="mt-[-20px] bg-white dark:bg-dark-card px-6 py-3 rounded-2xl shadow-lg border border-white/20 dark:border-white/5 flex items-center gap-3 z-30"
-            >
-              <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
-                <Droplets size={16} />
-              </div>
-              <p className="text-base font-bold text-brand-ink dark:text-dark-ink">
-                Restam <span className="text-blue-500">{(waterGoal - waterIntake).toFixed(1)}L</span>
-              </p>
-            </motion.div>
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="mt-[-20px] bg-white dark:bg-dark-card px-6 py-3 rounded-2xl shadow-lg border border-white/20 dark:border-white/5 flex items-center gap-3 z-30"
+          >
+            <div className="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <Droplets size={16} />
+            </div>
+            <p className="text-base font-bold text-brand-ink dark:text-dark-ink">
+              Restam <span className="text-blue-500">{(waterGoal - waterIntake).toFixed(1)}L</span>
+            </p>
           </motion.div>
+        </motion.div>
 
-          {/* Quick Log */}
-          <section className="space-y-4">
-            <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Registro Rápido</h3>
-            <div className="grid grid-cols-3 gap-4">
-              {[
-                { icon: <GlassWater size={24} />, label: 'Copo', amount: '200ml', value: 200 },
-                { icon: <Milk size={24} />, label: 'Garrafa', amount: '500ml', value: 500 },
-                { icon: <Plus size={24} />, label: 'Outro', amount: 'Manual', value: 0 },
-              ].map((item, i) => (
-                <motion.button
-                  key={i}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    if (item.value > 0) {
-                      addHydration(item.label === 'Copo' ? 'Água' : 'Água Mineral', item.value, item.icon);
-                    } else {
-                      setShowManualModal(true);
-                    }
-                  }}
-                  className="bg-white dark:bg-dark-card p-4 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col items-center gap-2 transition-all hover:border-blue-500/30"
-                >
-                  <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+        {/* Quick Log */}
+        <section className="space-y-4">
+          <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Registro Rápido</h3>
+          <div className="grid grid-cols-3 gap-4">
+            {[
+              { icon: <GlassWater size={24} />, label: 'Copo', amount: '200ml', value: 200 },
+              { icon: <Milk size={24} />, label: 'Garrafa', amount: '500ml', value: 500 },
+              { icon: <Plus size={24} />, label: 'Outro', amount: 'Manual', value: 0 },
+            ].map((item, i) => (
+              <motion.button
+                key={i}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  if (item.value > 0) {
+                    addHydration(item.label === 'Copo' ? 'Água' : 'Água Mineral', item.value, item.icon);
+                  } else {
+                    setShowManualModal(true);
+                  }
+                }}
+                className="bg-white dark:bg-dark-card p-4 rounded-[24px] border border-white/20 dark:border-white/5 shadow-sm flex flex-col items-center gap-2 transition-all hover:border-blue-500/30"
+              >
+                <div className="w-12 h-12 rounded-2xl bg-blue-500/10 text-blue-500 flex items-center justify-center">
+                  {item.icon}
+                </div>
+                <div className="text-center">
+                  <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">{item.label}</p>
+                  <p className="text-xs text-gray-400 font-bold">{item.amount}</p>
+                </div>
+              </motion.button>
+            ))}
+          </div>
+        </section>
+
+        {/* History */}
+        <section className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Histórico de Hoje</h3>
+            <button className="text-xs font-bold text-blue-500 uppercase tracking-widest">Ver tudo</button>
+          </div>
+          <div className="space-y-3">
+            {hydrationHistory.map((item, i) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-white/20 dark:border-white/5 shadow-sm flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-2 h-2 rounded-full bg-blue-500" />
+                  <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-blue-500">
                     {item.icon}
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-bold text-brand-ink dark:text-dark-ink">{item.label}</p>
-                    <p className="text-xs text-gray-400 font-bold">{item.amount}</p>
+                  <div>
+                    <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.type}</p>
+                    <p className="text-xs text-gray-400 font-bold tracking-widest">{item.time}</p>
                   </div>
-                </motion.button>
-              ))}
-            </div>
-          </section>
+                </div>
+                <div className="flex items-center gap-4">
+                  <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.amount}ml</p>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => startEditingHydration(item.id)}
+                      className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                    >
+                      <Edit2 size={14} />
+                    </button>
+                    <button
+                      onClick={() => deleteHydration(item.id)}
+                      className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </section>
 
-          {/* History */}
-          <section className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-base font-bold text-brand-ink dark:text-dark-ink uppercase tracking-widest">Histórico de Hoje</h3>
-              <button className="text-xs font-bold text-blue-500 uppercase tracking-widest">Ver tudo</button>
+        {/* Smart Reminders */}
+        <section className="bg-blue-600 dark:bg-blue-700 p-6 rounded-[32px] shadow-xl shadow-blue-500/20 text-white space-y-6">
+          <div className="flex justify-between items-center">
+            <div className="space-y-1">
+              <h3 className="text-lg font-bold">Lembretes Inteligentes</h3>
+              <p className="text-xs text-blue-100">Receba notificações para beber água.</p>
             </div>
-            <div className="space-y-3">
-              {hydrationHistory.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.1 }}
-                  className="bg-white dark:bg-dark-card p-4 rounded-2xl border border-white/20 dark:border-white/5 shadow-sm flex items-center justify-between group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 dark:bg-white/5 flex items-center justify-center text-blue-500">
-                      {item.icon}
-                    </div>
-                    <div>
-                      <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.type}</p>
-                      <p className="text-xs text-gray-400 font-bold tracking-widest">{item.time}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <p className="text-base font-bold text-brand-ink dark:text-dark-ink">{item.amount}ml</p>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => startEditingHydration(item.id)}
-                        className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
-                      >
-                        <Edit2 size={14} />
-                      </button>
-                      <button
-                        onClick={() => deleteHydration(item.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </section>
+            <button
+              onClick={() => setRemindersEnabled(!remindersEnabled)}
+              className={`w-12 h-6 rounded-full transition-colors relative ${remindersEnabled ? 'bg-white' : 'bg-blue-400'}`}
+            >
+              <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${remindersEnabled ? 'right-1 bg-blue-600' : 'left-1 bg-white'}`} />
+            </button>
+          </div>
 
-          {/* Smart Reminders */}
-          <section className="bg-blue-600 dark:bg-blue-700 p-6 rounded-[32px] shadow-xl shadow-blue-500/20 text-white space-y-6">
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <h3 className="text-lg font-bold">Lembretes Inteligentes</h3>
-                <p className="text-xs text-blue-100">Receba notificações para beber água.</p>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Intervalo</p>
+              <div className="flex justify-between items-center">
+                <span className="text-base font-bold">A cada 2h</span>
+                <Clock size={16} className="text-blue-200" />
               </div>
-              <button
-                onClick={() => setRemindersEnabled(!remindersEnabled)}
-                className={`w-12 h-6 rounded-full transition-colors relative ${remindersEnabled ? 'bg-white' : 'bg-blue-400'}`}
-              >
-                <div className={`absolute top-1 w-4 h-4 rounded-full transition-all ${remindersEnabled ? 'right-1 bg-blue-600' : 'left-1 bg-white'}`} />
+            </div>
+            <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Período</p>
+              <div className="flex justify-between items-center">
+                <span className="text-base font-bold">08:00 - 22:00</span>
+                <Clock size={16} className="text-blue-200" />
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+    {/* FAB */ }
+    <motion.button
+      whileHover={{ scale: 1.1 }}
+      whileTap={{ scale: 0.9 }}
+      className="fixed bottom-8 right-8 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center z-50"
+    >
+      <Plus size={28} />
+    </motion.button>
+
+    {/* Manual Entry Modal */ }
+    <AnimatePresence>
+      {showManualModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowManualModal(false)}
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+          />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="bg-white dark:bg-dark-card w-full max-w-sm rounded-[32px] p-8 shadow-2xl relative z-10 border border-white/20 dark:border-white/5"
+          >
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">
+                {editingId !== null ? 'Editar Registro' : 'Registro Manual'}
+              </h3>
+              <button onClick={() => {
+                setShowManualModal(false);
+                setEditingId(null);
+                setManualType('');
+                setManualAmount('');
+              }} className="text-gray-400 hover:text-red-500 transition-colors">
+                <X size={24} />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Intervalo</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-base font-bold">A cada 2h</span>
-                  <Clock size={16} className="text-blue-200" />
+            <form onSubmit={handleManualSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Tipo de Líquido</label>
+                <div className="relative group">
+                  <CupSoda className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                  <input
+                    required
+                    type="text"
+                    value={manualType}
+                    onChange={(e) => setManualType(e.target.value)}
+                    placeholder="Ex: Suco de Laranja, Chá..."
+                    className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                  />
                 </div>
               </div>
-              <div className="bg-white/10 p-4 rounded-2xl border border-white/10 space-y-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-blue-100">Período</p>
-                <div className="flex justify-between items-center">
-                  <span className="text-base font-bold">08:00 - 22:00</span>
-                  <Clock size={16} className="text-blue-200" />
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Quantidade (ml)</label>
+                <div className="relative group">
+                  <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
+                  <input
+                    required
+                    type="number"
+                    value={manualAmount}
+                    onChange={(e) => setManualAmount(e.target.value)}
+                    placeholder="Ex: 300"
+                    className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
+                  />
                 </div>
               </div>
-            </div>
-          </section>
-        </main>
 
-        {/* FAB */}
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="fixed bottom-8 right-8 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg shadow-blue-500/40 flex items-center justify-center z-50"
-        >
-          <Plus size={28} />
-        </motion.button>
-
-        {/* Manual Entry Modal */}
-        <AnimatePresence>
-          {showManualModal && (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setShowManualModal(false)}
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-              />
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="bg-white dark:bg-dark-card w-full max-w-sm rounded-[32px] p-8 shadow-2xl relative z-10 border border-white/20 dark:border-white/5"
+              <button
+                type="submit"
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 group"
               >
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-xl font-bold text-brand-ink dark:text-dark-ink">
-                    {editingId !== null ? 'Editar Registro' : 'Registro Manual'}
-                  </h3>
-                  <button onClick={() => {
-                    setShowManualModal(false);
-                    setEditingId(null);
-                    setManualType('');
-                    setManualAmount('');
-                  }} className="text-gray-400 hover:text-red-500 transition-colors">
-                    <X size={24} />
-                  </button>
-                </div>
-
-                <form onSubmit={handleManualSubmit} className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Tipo de Líquido</label>
-                    <div className="relative group">
-                      <CupSoda className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                      <input
-                        required
-                        type="text"
-                        value={manualType}
-                        onChange={(e) => setManualType(e.target.value)}
-                        placeholder="Ex: Suco de Laranja, Chá..."
-                        className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-400 ml-1">Quantidade (ml)</label>
-                    <div className="relative group">
-                      <Droplets className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors" size={18} />
-                      <input
-                        required
-                        type="number"
-                        value={manualAmount}
-                        onChange={(e) => setManualAmount(e.target.value)}
-                        placeholder="Ex: 300"
-                        className="w-full bg-[#f9f9f7] dark:bg-white/5 border border-transparent focus:border-blue-500/30 focus:bg-white dark:focus:bg-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none transition-all text-gray-700 dark:text-gray-200"
-                      />
-                    </div>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-500/20 transition-all flex items-center justify-center gap-2 group"
-                  >
-                    {editingId !== null ? 'Salvar Alterações' : 'Adicionar Registro'}
-                    <Check size={18} />
-                  </button>
-                </form>
-              </motion.div>
-            </div>
-          )}
-        </AnimatePresence>
-      </div>
+                {editingId !== null ? 'Salvar Alterações' : 'Adicionar Registro'}
+                <Check size={18} />
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
+      </div >
     );
   }
 
