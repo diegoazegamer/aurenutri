@@ -403,7 +403,7 @@ export default function App() {
 
     if (!error && data) {
       setPatientPrescriptions(prev => [data[0], ...prev]);
-      setShowNewNewPrescriptionModal(false);
+      setShowNewPrescriptionModal(false);
       setNewPrescriptionTitle('');
       setNewPrescriptionContent('');
       alert('Receita salva com sucesso!');
